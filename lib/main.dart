@@ -95,7 +95,12 @@ class _MyHomePageState extends State<MyHomePage> {
     "Настройки",
     "Свяжитесь с нами"
   ];
-
+  List<Widget> alarms = [];
+  List<Object> havedAlarms = [];
+  List<Widget> worldTimes = [];
+  List<Object> havedWorldTimes = [];
+  List<Widget> customTimers = [];
+  List<Object> havedCustomTimers = [];
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -107,11 +112,123 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void addAlarm () {
+    alarms.add(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            Container(
+                child: Text(
+                    '06:18',
+                    style: TextStyle(
+                        fontSize: 24
+                    )
+                )
+            ),
+            Container(
+              child: Text(
+                  'пн, 31 янв.'
+              ),
+            ),
+            Switch(
+                value: alarmTogglers[0],
+                onChanged: (bool value) => {
+                  setState(() {
+                    alarmTogglers[0] = value;
+                  })
+                }
+            ),
+          ],
+        )
+    );
+  }
+
+  void addWorldTime () {
+    worldTimes.add(
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: <Widget>[
+          Container(
+              child: Column(
+                children: <Widget>[
+                  Text(
+                      'Афины',
+                      style: TextStyle(
+                          fontSize: 24
+                      )
+                  ),
+                  Text(
+                      'на 1 час раньше'
+                  )
+                ],
+              )
+          ),
+          Container(
+            child: Text(
+                '15:26',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            ),
+          ),
+          Column(
+            children: <Widget>[
+              Image.asset(
+                  'assets/weather.png',
+                  width: 25
+              ),
+              Text(
+                  '2*'
+              )
+            ],
+          )
+        ],
+      )
+    );
+  }
+
+  void addCustomTimer() {
+    customTimers.add(
+        GestureDetector(
+          onTap: () {
+
+          },
+          child: Container(
+              alignment: Alignment.center,
+              height: 100.0,
+              width: 100.0,
+              margin: EdgeInsets.only(
+                  top: 50,
+                  bottom: 50,
+                  left: 15,
+                  right: 15
+              ),
+              decoration: BoxDecoration(
+                color: Color.fromARGB(255, 200, 200, 200),
+                borderRadius: BorderRadius.circular(45),
+              ),
+              child: Text(
+                  "00:00:00"
+              )
+          )
+        )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    havedAlarms.toList().map((Object havedAlarm) {
+      addAlarm();
+    });
+
+    havedWorldTimes.toList().map((Object havedWorldTime) {
+      addWorldTime();
+    });
+
     return DefaultTabController(
         initialIndex: 1,
-        length: 4,
+        length: 5,
         child: Scaffold(
           appBar: AppBar(
             title: const Text('Будильник'),
@@ -128,6 +245,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Tab(
                     text: 'Таймер'
+                ),
+                Tab(
+                    text: 'Запущенный таймер'
                 )
               ],
             ),
@@ -146,15 +266,20 @@ class _MyHomePageState extends State<MyHomePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
-                      Container(
-                        margin: EdgeInsets.only(
-                          bottom: 15,
-                          top: 15,
-                          left: 25,
-                          right: 25
-                        ),
-                        child: Icon(
-                            Icons.add
+                      TextButton(
+                        onPressed: () {
+                          addAlarm();
+                        },
+                        child: Container(
+                            margin: EdgeInsets.only(
+                                bottom: 15,
+                                top: 15,
+                                left: 25,
+                                right: 25
+                            ),
+                            child: Icon(
+                                Icons.add
+                            )
                         )
                       ),
                       Container(
@@ -180,139 +305,13 @@ class _MyHomePageState extends State<MyHomePage> {
                       )
                     ],
                   ),
-                  Column(
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          Container(
-                            child: Text(
-                                '06:18',
-                                style: TextStyle(
-                                    fontSize: 24
-                                )
-                            )
-                          ),
-                          Container(
-                            child: Text(
-                                'пн, 31 янв.'
-                            ),
-                          ),
-                          Switch(
-                              value: alarmTogglers[0],
-                              onChanged: (bool value) => {
-                                setState(() {
-                                  alarmTogglers[0] = value;
-                                })
-                              }
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          Container(
-                              child: Text(
-                                  '06:18',
-                                  style: TextStyle(
-                                      fontSize: 24
-                                  )
-                              )
-                          ),
-                          Container(
-                            child: Text(
-                                'пн, 31 янв.'
-                            ),
-                          ),
-                          Switch(
-                              value: alarmTogglers[1],
-                              onChanged: (bool value) => {
-                                setState(() {
-                                  alarmTogglers[1] = value;
-                                })
-                              }
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          Container(
-                              child: Text(
-                                  '06:18',
-                                  style: TextStyle(
-                                      fontSize: 24
-                                  )
-                              )
-                          ),
-                          Container(
-                            child: Text(
-                                'пн, 31 янв.'
-                            ),
-                          ),
-                          Switch(
-                              value: alarmTogglers[2],
-                              onChanged: (bool value) => {
-                                setState(() {
-                                  alarmTogglers[2] = value;
-                                })
-                              }
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          Container(
-                              child: Text(
-                                  '06:18',
-                                  style: TextStyle(
-                                      fontSize: 24
-                                  )
-                              )
-                          ),
-                          Container(
-                            child: Text(
-                                'пн, 31 янв.'
-                            ),
-                          ),
-                          Switch(
-                              value: alarmTogglers[3],
-                              onChanged: (bool value) => {
-                                setState(() {
-                                  alarmTogglers[3] = value;
-                                })
-                              }
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          Container(
-                              child: Text(
-                                  '06:18',
-                                  style: TextStyle(
-                                      fontSize: 24
-                                  )
-                              )
-                          ),
-                          Container(
-                            child: Text(
-                                'пн, 31 янв.'
-                            ),
-                          ),
-                          Switch(
-                              value: alarmTogglers[4],
-                              onChanged: (bool value) => {
-                                setState(() {
-                                  alarmTogglers[4] = value;
-                                })
-                              }
-                          ),
-                        ],
-                      )
-                    ],
+                  SingleChildScrollView(
+                    child: Container(
+                        height: 300,
+                        child: Column(
+                          children: alarms
+                        )
+                    )
                   )
                 ]
               ),
@@ -330,16 +329,21 @@ class _MyHomePageState extends State<MyHomePage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
-                        Container(
+                        TextButton(
+                          child: Container(
                             margin: EdgeInsets.only(
-                                bottom: 15,
-                                top: 15,
-                                left: 25,
-                                right: 25
+                              bottom: 15,
+                              top: 15,
+                              left: 25,
+                              right: 25
                             ),
                             child: Icon(
-                                Icons.add
+                              Icons.add
                             )
+                          ),
+                          onPressed: () {
+                            addWorldTime();
+                          },
                         ),
                         Container(
                             margin: EdgeInsets.only(
@@ -365,203 +369,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ],
                     ),
                     Column(
-                      children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                            Container(
-                              child: Column(
-                                children: <Widget>[
-                                  Text(
-                                    'Афины',
-                                    style: TextStyle(
-                                      fontSize: 24
-                                    )
-                                  ),
-                                  Text(
-                                    'на 1 час раньше'
-                                  )
-                                ],
-                              )
-                            ),
-                            Container(
-                              child: Text(
-                                '15:26',
-                                style: TextStyle(
-                                  fontSize: 24
-                                )
-                              ),
-                            ),
-                            Column(
-                              children: <Widget>[
-                                Image.asset(
-                                  'assets/weather.png',
-                                  width: 25
-                                ),
-                                Text(
-                                    '2*'
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                            Container(
-                                child: Column(
-                                  children: <Widget>[
-                                    Text(
-                                        'Афины',
-                                        style: TextStyle(
-                                            fontSize: 24
-                                        )
-                                    ),
-                                    Text(
-                                        'на 1 час раньше'
-                                    )
-                                  ],
-                                )
-                            ),
-                            Container(
-                              child: Text(
-                                  '15:26',
-                                  style: TextStyle(
-                                      fontSize: 24
-                                  )
-                              ),
-                            ),
-                            Column(
-                              children: <Widget>[
-                                Image.asset(
-                                    'assets/weather.png',
-                                    width: 25
-                                ),
-                                Text(
-                                    '2*'
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                            Container(
-                                child: Column(
-                                  children: <Widget>[
-                                    Text(
-                                        'Афины',
-                                        style: TextStyle(
-                                            fontSize: 24
-                                        )
-                                    ),
-                                    Text(
-                                        'на 1 час раньше'
-                                    )
-                                  ],
-                                )
-                            ),
-                            Container(
-                              child: Text(
-                                  '15:26',
-                                  style: TextStyle(
-                                      fontSize: 24
-                                  )
-                              ),
-                            ),
-                            Column(
-                              children: <Widget>[
-                                Image.asset(
-                                    'assets/weather.png',
-                                    width: 25
-                                ),
-                                Text(
-                                    '2*'
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                            Container(
-                                child: Column(
-                                  children: <Widget>[
-                                    Text(
-                                        'Афины',
-                                        style: TextStyle(
-                                            fontSize: 24
-                                        )
-                                    ),
-                                    Text(
-                                        'на 1 час раньше'
-                                    )
-                                  ],
-                                )
-                            ),
-                            Container(
-                              child: Text(
-                                  '15:26',
-                                  style: TextStyle(
-                                      fontSize: 24
-                                  )
-                              ),
-                            ),
-                            Column(
-                              children: <Widget>[
-                                Image.asset(
-                                    'assets/weather.png',
-                                    width: 25
-                                ),
-                                Text(
-                                    '2*'
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                            Container(
-                                child: Column(
-                                  children: <Widget>[
-                                    Text(
-                                        'Афины',
-                                        style: TextStyle(
-                                            fontSize: 24
-                                        )
-                                    ),
-                                    Text(
-                                        'на 1 час раньше'
-                                    )
-                                  ],
-                                )
-                            ),
-                            Container(
-                              child: Text(
-                                  '15:26',
-                                  style: TextStyle(
-                                      fontSize: 24
-                                  )
-                              ),
-                            ),
-                            Column(
-                              children: <Widget>[
-                                Image.asset(
-                                    'assets/weather.png',
-                                    width: 25
-                                ),
-                                Text(
-                                    '2*'
-                                )
-                              ],
-                            )
-                          ],
-                        )
-                      ],
+                      children: worldTimes,
                     )
                   ]
               ),
@@ -736,16 +544,87 @@ class _MyHomePageState extends State<MyHomePage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
-                        Container(
+                        TextButton(
+                          child: Container(
                             margin: EdgeInsets.only(
-                                bottom: 15,
-                                top: 15,
-                                left: 25,
-                                right: 25
+                              bottom: 15,
+                              top: 15,
+                              left: 25,
+                              right: 25
                             ),
                             child: Icon(
                                 Icons.add
                             )
+                          ),
+                          onPressed: () {
+                            showDialog<String>(
+                                context: context,
+                                builder: (BuildContext context) => AlertDialog(
+                                  title: const Text('Добавление готового таймера'),
+                                  content: Container(
+                                    height: 300,
+                                    child: Column(
+                                      children: <Widget>[
+                                        Container(
+                                          child: TextField(
+
+                                          ),
+                                          padding: EdgeInsets.only(
+                                              top: 25,
+                                              bottom: 25,
+                                              left: 0,
+                                              right: 0
+                                          ),
+                                          margin: EdgeInsets.only(
+                                            top: 25,
+                                            bottom: 25,
+                                            left: 0,
+                                            right: 0
+                                          ),
+                                        ),
+                                        Container(
+                                          child: TextField(
+                                              decoration: new InputDecoration.collapsed(
+                                                  hintText: 'Название готового таймера',
+                                                  border: OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          width: 1.0
+                                                      )
+                                                  )
+                                              )
+                                          ),
+                                          padding: EdgeInsets.only(
+                                              top: 25,
+                                              bottom: 25,
+                                              left: 0,
+                                              right: 0
+                                          ),
+                                          margin: EdgeInsets.only(
+                                              top: 25,
+                                              bottom: 25,
+                                              left: 0,
+                                              right: 0
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, 'Cancel'),
+                                      child: const Text('Отмена')
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        addCustomTimer();
+                                        return Navigator.pop(context, 'OK');
+                                      },
+                                      child: const Text('Добавить')
+                                    )
+                                  ],
+                                )
+                            );
+                          },
                         ),
                         Container(
                             margin: EdgeInsets.only(
@@ -784,7 +663,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: Text(
                                     '00',
                                     style: TextStyle(
-                                        fontSize: 24
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold
                                     )
                                 )
                             ),
@@ -818,7 +698,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: Text(
                                     '00',
                                     style: TextStyle(
-                                        fontSize: 24
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold
                                     )
                                 )
                             ),
@@ -852,7 +733,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: Text(
                                     '00',
                                     style: TextStyle(
-                                        fontSize: 24
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold
                                     )
                                 )
                             ),
@@ -878,71 +760,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     SingleChildScrollView(
                       child: Row(
-                        children: <Widget>[
-                          Container(
-                              alignment: Alignment.center,
-                              height: 100.0,
-                              width: 100.0,
-                              margin: EdgeInsets.only(
-                                  top: 50,
-                                  bottom: 50,
-                                  left: 15,
-                                  right: 15
-                              ),
-                              decoration: BoxDecoration(
-                                color: Color.fromARGB(255, 200, 200, 200),
-                                borderRadius: BorderRadius.circular(45),
-                              ),
-                              child: Text(
-                                  "00:00:00"
-                              )
-                          ),
-                          Container(
-                              alignment: Alignment.center,
-                              height: 100.0,
-                              width: 100.0,
-                              margin: EdgeInsets.only(
-                                  top: 50,
-                                  bottom: 50,
-                                  left: 15,
-                                  right: 15
-                              ),
-                              decoration: BoxDecoration(
-                                color: Color.fromARGB(255, 200, 200, 200),
-                                borderRadius: BorderRadius.circular(45),
-                              ),
-                              child: Text(
-                                  "00:00:00"
-                              )
-                          ),
-                          Container(
-                              alignment: Alignment.center,
-                              height: 100.0,
-                              width: 100.0,
-                              margin: EdgeInsets.only(
-                                  top: 50,
-                                  bottom: 50,
-                                  left: 15,
-                                  right: 15
-                              ),
-                              decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  borderRadius: BorderRadius.circular(45),
-                                  border: Border.fromBorderSide(
-                                      BorderSide(
-                                          color: Color.fromARGB(255, 200, 150, 255),
-                                          width: 3.0
-                                      )
-                                  )
-                              ),
-                              child: Text(
-                                  '00:00:00',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold
-                                  )
-                              )
-                          )
-                        ],
+                        children: customTimers,
                       )
                     ),
                     Container(
@@ -984,6 +802,13 @@ class _MyHomePageState extends State<MyHomePage> {
                       )
                     )
                   ]
+              ),
+              Column(
+                children: <Widget>[
+                  Text(
+                    'Запущенный таймер'
+                  )
+                ],
               )
             ],
           )
