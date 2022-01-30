@@ -1,4 +1,10 @@
+import 'dart:async';
+import 'dart:ffi';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+// import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
 void main() {
   runApp(const MyApp());
@@ -48,7 +54,47 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
   int _counter = 0;
+  var alarmTogglers = [
+    false,
+    false,
+    false,
+    false,
+    false
+  ];
+  bool isStartStopWatch = false;
+  late Timer stopWatchTimer;
+  String stopWatchTitle = '00:00:00';
+  String stopWatchTitleSeparator = ':';
+  int countSecondsInMinute = 60;
+  int initialSeconds = 0;
+  int countMinutesInHour = 60;
+  int initialMinutes = 60;
+  String oneCharPrefix = "0";
+  List<String> alarmsPopupMenuItemsHeaders = <String> [
+    'Установить время отхода ко сну и пробуждения',
+    'Изменить',
+    'Сортировать',
+    'Настройки',
+    'Свяжитесь с нами'
+  ];
+  List<String> worldTimePopupMenuItemsHeaders = <String>[
+    "Изменить",
+    "Конвертер часовых поясов",
+    "Настройки",
+    "Свяжитесь с нами"
+  ];
+  List<String> stopWatchPopupMenuItemsHeaders = <String>[
+    "Список последних кругов",
+    "Настройки",
+    "Свяжитесь с нами"
+  ];
+  List<String> timerPopupMenuItemsHeaders = <String>[
+    "Изменить установленные таймеры",
+    "Настройки",
+    "Свяжитесь с нами"
+  ];
 
   void _incrementCounter() {
     setState(() {
@@ -86,19 +132,858 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           ),
-          body: const TabBarView(
+          body: TabBarView(
             children: <Widget>[
-              Center(
-                child: Text("Будильник"),
+              Column(
+                children: <Widget>[
+                  Text(
+                      "Все будильники\nотключены",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24
+                      ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      Container(
+                        margin: EdgeInsets.only(
+                          bottom: 15,
+                          top: 15,
+                          left: 25,
+                          right: 25
+                        ),
+                        child: Icon(
+                            Icons.add
+                        )
+                      ),
+                      Container(
+                          margin: EdgeInsets.only(
+                              bottom: 15,
+                              top: 15,
+                              left: 25,
+                              right: 25
+                          ),
+                          child: PopupMenuButton(
+                              itemBuilder: (BuildContext context) {
+                                return alarmsPopupMenuItemsHeaders.map((String alarmsPopupMenuItemsHeader) {
+                                  return  PopupMenuItem<String>(
+                                    value: alarmsPopupMenuItemsHeader,
+                                    child: Text(alarmsPopupMenuItemsHeader),
+                                  );}
+                                ).toList();
+                              },
+                              child: Icon(
+                                  Icons.more_vert
+                              )
+                          )
+                      )
+                    ],
+                  ),
+                  Column(
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          Container(
+                            child: Text(
+                                '06:18',
+                                style: TextStyle(
+                                    fontSize: 24
+                                )
+                            )
+                          ),
+                          Container(
+                            child: Text(
+                                'пн, 31 янв.'
+                            ),
+                          ),
+                          Switch(
+                              value: alarmTogglers[0],
+                              onChanged: (bool value) => {
+                                setState(() {
+                                  alarmTogglers[0] = value;
+                                })
+                              }
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          Container(
+                              child: Text(
+                                  '06:18',
+                                  style: TextStyle(
+                                      fontSize: 24
+                                  )
+                              )
+                          ),
+                          Container(
+                            child: Text(
+                                'пн, 31 янв.'
+                            ),
+                          ),
+                          Switch(
+                              value: alarmTogglers[1],
+                              onChanged: (bool value) => {
+                                setState(() {
+                                  alarmTogglers[1] = value;
+                                })
+                              }
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          Container(
+                              child: Text(
+                                  '06:18',
+                                  style: TextStyle(
+                                      fontSize: 24
+                                  )
+                              )
+                          ),
+                          Container(
+                            child: Text(
+                                'пн, 31 янв.'
+                            ),
+                          ),
+                          Switch(
+                              value: alarmTogglers[2],
+                              onChanged: (bool value) => {
+                                setState(() {
+                                  alarmTogglers[2] = value;
+                                })
+                              }
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          Container(
+                              child: Text(
+                                  '06:18',
+                                  style: TextStyle(
+                                      fontSize: 24
+                                  )
+                              )
+                          ),
+                          Container(
+                            child: Text(
+                                'пн, 31 янв.'
+                            ),
+                          ),
+                          Switch(
+                              value: alarmTogglers[3],
+                              onChanged: (bool value) => {
+                                setState(() {
+                                  alarmTogglers[3] = value;
+                                })
+                              }
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          Container(
+                              child: Text(
+                                  '06:18',
+                                  style: TextStyle(
+                                      fontSize: 24
+                                  )
+                              )
+                          ),
+                          Container(
+                            child: Text(
+                                'пн, 31 янв.'
+                            ),
+                          ),
+                          Switch(
+                              value: alarmTogglers[4],
+                              onChanged: (bool value) => {
+                                setState(() {
+                                  alarmTogglers[4] = value;
+                                })
+                              }
+                          ),
+                        ],
+                      )
+                    ],
+                  )
+                ]
               ),
-              Center(
-                child: Text("Мировое время"),
+              Column(
+                  children: <Widget>[
+                    Text(
+                      'Мировое время',
+                      style: TextStyle(
+                          fontSize: 24
+                      ),
+                    ),
+                    Text(
+                      'Москва, стандартное время'
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        Container(
+                            margin: EdgeInsets.only(
+                                bottom: 15,
+                                top: 15,
+                                left: 25,
+                                right: 25
+                            ),
+                            child: Icon(
+                                Icons.add
+                            )
+                        ),
+                        Container(
+                            margin: EdgeInsets.only(
+                                bottom: 15,
+                                top: 15,
+                                left: 25,
+                                right: 25
+                            ),
+                            child: PopupMenuButton(
+                                itemBuilder: (BuildContext context) {
+                                  return worldTimePopupMenuItemsHeaders.map((String worldTimePopupMenuItemsHeader) {
+                                    return  PopupMenuItem<String>(
+                                      value: worldTimePopupMenuItemsHeader,
+                                      child: Text(worldTimePopupMenuItemsHeader),
+                                    );}
+                                  ).toList();
+                                },
+                                child: Icon(
+                                    Icons.more_vert
+                                )
+                            )
+                        )
+                      ],
+                    ),
+                    Column(
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: <Widget>[
+                            Container(
+                              child: Column(
+                                children: <Widget>[
+                                  Text(
+                                    'Афины',
+                                    style: TextStyle(
+                                      fontSize: 24
+                                    )
+                                  ),
+                                  Text(
+                                    'на 1 час раньше'
+                                  )
+                                ],
+                              )
+                            ),
+                            Container(
+                              child: Text(
+                                '15:26',
+                                style: TextStyle(
+                                  fontSize: 24
+                                )
+                              ),
+                            ),
+                            Column(
+                              children: <Widget>[
+                                Image.asset(
+                                  'assets/weather.png',
+                                  width: 25
+                                ),
+                                Text(
+                                    '2*'
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: <Widget>[
+                            Container(
+                                child: Column(
+                                  children: <Widget>[
+                                    Text(
+                                        'Афины',
+                                        style: TextStyle(
+                                            fontSize: 24
+                                        )
+                                    ),
+                                    Text(
+                                        'на 1 час раньше'
+                                    )
+                                  ],
+                                )
+                            ),
+                            Container(
+                              child: Text(
+                                  '15:26',
+                                  style: TextStyle(
+                                      fontSize: 24
+                                  )
+                              ),
+                            ),
+                            Column(
+                              children: <Widget>[
+                                Image.asset(
+                                    'assets/weather.png',
+                                    width: 25
+                                ),
+                                Text(
+                                    '2*'
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: <Widget>[
+                            Container(
+                                child: Column(
+                                  children: <Widget>[
+                                    Text(
+                                        'Афины',
+                                        style: TextStyle(
+                                            fontSize: 24
+                                        )
+                                    ),
+                                    Text(
+                                        'на 1 час раньше'
+                                    )
+                                  ],
+                                )
+                            ),
+                            Container(
+                              child: Text(
+                                  '15:26',
+                                  style: TextStyle(
+                                      fontSize: 24
+                                  )
+                              ),
+                            ),
+                            Column(
+                              children: <Widget>[
+                                Image.asset(
+                                    'assets/weather.png',
+                                    width: 25
+                                ),
+                                Text(
+                                    '2*'
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: <Widget>[
+                            Container(
+                                child: Column(
+                                  children: <Widget>[
+                                    Text(
+                                        'Афины',
+                                        style: TextStyle(
+                                            fontSize: 24
+                                        )
+                                    ),
+                                    Text(
+                                        'на 1 час раньше'
+                                    )
+                                  ],
+                                )
+                            ),
+                            Container(
+                              child: Text(
+                                  '15:26',
+                                  style: TextStyle(
+                                      fontSize: 24
+                                  )
+                              ),
+                            ),
+                            Column(
+                              children: <Widget>[
+                                Image.asset(
+                                    'assets/weather.png',
+                                    width: 25
+                                ),
+                                Text(
+                                    '2*'
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: <Widget>[
+                            Container(
+                                child: Column(
+                                  children: <Widget>[
+                                    Text(
+                                        'Афины',
+                                        style: TextStyle(
+                                            fontSize: 24
+                                        )
+                                    ),
+                                    Text(
+                                        'на 1 час раньше'
+                                    )
+                                  ],
+                                )
+                            ),
+                            Container(
+                              child: Text(
+                                  '15:26',
+                                  style: TextStyle(
+                                      fontSize: 24
+                                  )
+                              ),
+                            ),
+                            Column(
+                              children: <Widget>[
+                                Image.asset(
+                                    'assets/weather.png',
+                                    width: 25
+                                ),
+                                Text(
+                                    '2*'
+                                )
+                              ],
+                            )
+                          ],
+                        )
+                      ],
+                    )
+                  ]
               ),
-              Center(
-                child: Text("Секундомер"),
+              Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      Container(
+                          margin: EdgeInsets.only(
+                              bottom: 15,
+                              top: 15,
+                              left: 25,
+                              right: 25
+                          ),
+                          child: PopupMenuButton(
+                            itemBuilder: (BuildContext context) {
+                              return stopWatchPopupMenuItemsHeaders.map((String stopWatchPopupMenuItemsHeader) {
+                                return  PopupMenuItem<String>(
+                                  value: stopWatchPopupMenuItemsHeader,
+                                  child: Text(stopWatchPopupMenuItemsHeader),
+                                );}
+                              ).toList();
+                            },
+                            child: Icon(
+                                Icons.more_vert
+                            )
+                          )
+                      )
+                    ],
+                  ),
+                  Text(
+                    stopWatchTitle,
+                    style: TextStyle(
+                        fontSize: 36
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(
+                      top: 350,
+                      bottom: 50,
+                      left: 0,
+                      right: 0
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
+                        TextButton(
+                          style: ButtonStyle(
+                              textStyle: MaterialStateProperty.all(
+                                  TextStyle(
+                                      fontSize: 18
+                                  )
+                              ),
+                              backgroundColor: MaterialStateProperty.all(Color.fromARGB(255, 225, 225, 225)),
+                              foregroundColor: MaterialStateProperty.all(Color.fromARGB(255, 150, 150, 150)),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18.0),
+                                      side: BorderSide(
+                                          color: Colors.transparent
+                                      )
+                                  )
+                              ),
+                              fixedSize: MaterialStateProperty.all<Size>(
+                                  Size(
+                                      100.0,
+                                      45.0
+                                  )
+                              )
+                          ),
+                          onPressed: () {
+
+                          },
+                          child: Text(
+                              'Интервал'
+                          ),
+                        ),
+                        TextButton(
+                          style: ButtonStyle(
+                              textStyle: MaterialStateProperty.all(
+                                  TextStyle(
+                                      fontSize: 18
+                                  )
+                              ),
+                              backgroundColor: MaterialStateProperty.all(Color.fromARGB(255, 0, 0, 225)),
+                              foregroundColor: MaterialStateProperty.all(Color.fromARGB(255, 255, 255, 255)),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18.0),
+                                      side: BorderSide(
+                                          color: Colors.transparent)
+                                  )
+                              ),
+                              fixedSize: MaterialStateProperty.all<Size>(
+                                  Size(
+                                      100.0,
+                                      45.0
+                                  )
+                              )
+                          ),
+                          onPressed: () {
+                            bool isNotStart = !isStartStopWatch;
+                            if (isNotStart) {
+                              stopWatchTimer = new Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+                                /*setState(() {
+                                  stopWatchTitle = "00:00:00";
+                                });*/
+                                List<String> timeParts = stopWatchTitle.split(stopWatchTitleSeparator);
+                                String rawHours = timeParts[0];
+                                String rawMinutes = timeParts[1];
+                                String rawSeconds = timeParts[2];
+                                int hours = rawHours as int;
+                                int minutes = rawMinutes as int;
+                                int seconds = rawSeconds as int;
+                                seconds++;
+                                bool isToggleSecond = seconds == countSecondsInMinute;
+                                if (isToggleSecond) {
+                                  seconds = initialSeconds;
+                                  minutes++;
+                                  bool isToggleHour = minutes == countMinutesInHour;
+                                  if (isToggleHour) {
+                                    minutes = initialMinutes;
+                                    hours++;
+                                  }
+                                }
+                                String updatedHoursText = hours as String;
+                                int countHoursChars = updatedHoursText.length;
+                                bool isAddHoursPrefix = countHoursChars == 1;
+                                if (isAddHoursPrefix) {
+                                  updatedHoursText = oneCharPrefix + updatedHoursText;
+                                }
+                                String updatedMinutesText = minutes as String;
+                                int countMinutesChars = updatedMinutesText.length;
+                                bool isAddMinutesPrefix = countMinutesChars == 1;
+                                if (isAddMinutesPrefix) {
+                                  updatedMinutesText = oneCharPrefix + updatedMinutesText;
+                                }
+                                String updatedSecondsText = seconds as String;
+                                int countSecondsChars = updatedSecondsText.length;
+                                bool isAddSecondsPrefix = countSecondsChars == 1;
+                                if (isAddSecondsPrefix) {
+                                  updatedSecondsText = oneCharPrefix + updatedSecondsText;
+                                }
+                                String currentTime = updatedHoursText + ":" + updatedMinutesText + ":" + updatedSecondsText;
+                                setState(() {
+                                  stopWatchTitle = currentTime;
+                                });
+
+                              });
+
+                            } else {
+                              setState(() {
+                                stopWatchTitle = new Random().nextInt(5000).toString();
+                              });
+                            }
+                            setState(() {
+                              isStartStopWatch = !isStartStopWatch;
+                            });
+                          },
+                          child: Text(
+                              'Начать'
+                          ),
+                        )
+                      ],
+                    )
+                  )
+                ]
               ),
-              Center(
-                child: Text("Таймер"),
+              Column(
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        Container(
+                            margin: EdgeInsets.only(
+                                bottom: 15,
+                                top: 15,
+                                left: 25,
+                                right: 25
+                            ),
+                            child: Icon(
+                                Icons.add
+                            )
+                        ),
+                        Container(
+                            margin: EdgeInsets.only(
+                                bottom: 15,
+                                top: 15,
+                                left: 25,
+                                right: 25
+                            ),
+                            child: PopupMenuButton(
+                              itemBuilder: (BuildContext context) {
+                                return timerPopupMenuItemsHeaders.map((String timerPopupMenuItemsHeader) {
+                                  return  PopupMenuItem<String>(
+                                    value: timerPopupMenuItemsHeader,
+                                    child: Text(timerPopupMenuItemsHeader),
+                                  );
+                                }).toList();
+                              },
+                            child: Icon(
+                              Icons.more_vert
+                            )
+                          )
+                        )
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
+                        Column(
+                          children: <Widget>[
+                            Container(
+                              child: Text(
+                                  'ч.'
+                              ),
+                            ),
+                            Container(
+                                child: Text(
+                                    '00',
+                                    style: TextStyle(
+                                        fontSize: 24
+                                    )
+                                )
+                            ),
+                            Container(
+                                child: Text(
+                                    '01',
+                                    style: TextStyle(
+                                        fontSize: 24
+                                    )
+                                )
+                            ),
+                            Container(
+                              child: Text(
+                                  '02',
+                                  style: TextStyle(
+                                      fontSize: 24
+                                  )
+                              )
+                            )
+                          ],
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: <Widget>[
+                            Container(
+                              child: Text(
+                                  'мин.'
+                              ),
+                            ),
+                            Container(
+                                child: Text(
+                                    '00',
+                                    style: TextStyle(
+                                        fontSize: 24
+                                    )
+                                )
+                            ),
+                            Container(
+                                child: Text(
+                                    '01',
+                                    style: TextStyle(
+                                        fontSize: 24
+                                    )
+                                )
+                            ),
+                            Container(
+                                child: Text(
+                                    '02',
+                                    style: TextStyle(
+                                        fontSize: 24
+                                    )
+                                )
+                            )
+                          ],
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: <Widget>[
+                            Container(
+                              child: Text(
+                                  'сек.'
+                              ),
+                            ),
+                            Container(
+                                child: Text(
+                                    '00',
+                                    style: TextStyle(
+                                        fontSize: 24
+                                    )
+                                )
+                            ),
+                            Container(
+                                child: Text(
+                                    '01',
+                                    style: TextStyle(
+                                        fontSize: 24
+                                    )
+                                )
+                            ),
+                            Container(
+                                child: Text(
+                                    '02',
+                                    style: TextStyle(
+                                        fontSize: 24
+                                    )
+                                )
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                    SingleChildScrollView(
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                              alignment: Alignment.center,
+                              height: 100.0,
+                              width: 100.0,
+                              margin: EdgeInsets.only(
+                                  top: 50,
+                                  bottom: 50,
+                                  left: 15,
+                                  right: 15
+                              ),
+                              decoration: BoxDecoration(
+                                color: Color.fromARGB(255, 200, 200, 200),
+                                borderRadius: BorderRadius.circular(45),
+                              ),
+                              child: Text(
+                                  "00:00:00"
+                              )
+                          ),
+                          Container(
+                              alignment: Alignment.center,
+                              height: 100.0,
+                              width: 100.0,
+                              margin: EdgeInsets.only(
+                                  top: 50,
+                                  bottom: 50,
+                                  left: 15,
+                                  right: 15
+                              ),
+                              decoration: BoxDecoration(
+                                color: Color.fromARGB(255, 200, 200, 200),
+                                borderRadius: BorderRadius.circular(45),
+                              ),
+                              child: Text(
+                                  "00:00:00"
+                              )
+                          ),
+                          Container(
+                              alignment: Alignment.center,
+                              height: 100.0,
+                              width: 100.0,
+                              margin: EdgeInsets.only(
+                                  top: 50,
+                                  bottom: 50,
+                                  left: 15,
+                                  right: 15
+                              ),
+                              decoration: BoxDecoration(
+                                  color: Colors.transparent,
+                                  borderRadius: BorderRadius.circular(45),
+                                  border: Border.fromBorderSide(
+                                      BorderSide(
+                                          color: Color.fromARGB(255, 200, 150, 255),
+                                          width: 3.0
+                                      )
+                                  )
+                              ),
+                              child: Text(
+                                  '00:00:00',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold
+                                  )
+                              )
+                          )
+                        ],
+                      )
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(
+                        top: 115,
+                        bottom: 0,
+                        left: 0,
+                        right: 0
+                      ),
+                      child: TextButton(
+                        onPressed: () {
+
+                        },
+                        style: ButtonStyle(
+                            textStyle: MaterialStateProperty.all(
+                                TextStyle(
+                                    fontSize: 18
+                                )
+                            ),
+                            backgroundColor: MaterialStateProperty.all(Color.fromARGB(255, 0, 0, 225)),
+                            foregroundColor: MaterialStateProperty.all(Color.fromARGB(255, 255, 255, 255)),
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18.0),
+                                    side: BorderSide(
+                                        color: Colors.transparent)
+                                )
+                            ),
+                            fixedSize: MaterialStateProperty.all<Size>(
+                                Size(
+                                    100.0,
+                                    45.0
+                                )
+                            )
+                        ),
+                        child: Text(
+                          'Начать'
+                        ),
+                      )
+                    )
+                  ]
               )
             ],
           )
