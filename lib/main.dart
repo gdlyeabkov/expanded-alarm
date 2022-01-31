@@ -7,7 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 // import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
-void main() {
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+void main() async {
+
   runApp(const MyApp());
 }
 
@@ -20,41 +24,23 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
       routes: {
-        '/first': (context) => const MyHomePage(
+        '/main': (context) => const MyHomePage(
             title: 'Flutter Demo Home Page'
         ),
-        '/second': (context) => AddAlarmPage()
+        '/add_alarm': (context) => AddAlarmPage(),
+        '/add_world_time': (context) => AddWorldTimePage()
       },
-      initialRoute: '/',
+      initialRoute: '/main',
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -63,7 +49,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  int _counter = 0;
+
+  late DatabaseHandler handler;
   var alarmTogglers = [
     false,
     false,
@@ -109,27 +96,36 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Object> havedWorldTimes = [];
   List<Widget> customTimers = [];
   List<Object> havedCustomTimers = [];
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+
+  @override
+  void initState() {
+    super.initState();
+    this.handler = DatabaseHandler();
+    this.handler.initializeDB().whenComplete(() async {
+      // await this.deleteAlarms();
+      setState(() {});
     });
   }
 
-  void addAlarm () {
+  Future<void> deleteAlarms() async {
+    return await this.handler.deleteAlarms();
+  }
+
+  void addAlarm (Alarm alarm) {
+    String alarmTime = alarm.time;
+    String alarmDate = alarm.date;
+    int rawAlarmIsEnabled = alarm.enabled;
+    bool isAlarmEnabled = rawAlarmIsEnabled == 1;
+    alarmTogglers.add(isAlarmEnabled);
     int alarmIndex = alarms.length;
-    setState(() {
+    //setState(() {
       alarms.add(
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               Container(
                   child: Text(
-                      '06:18',
+                      alarmTime,
                       style: TextStyle(
                           fontSize: 24
                       )
@@ -137,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Container(
                 child: Text(
-                    'пн, 31 янв.'
+                    alarmDate
                 ),
               ),
               Switch(
@@ -147,11 +143,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       alarmTogglers[alarmIndex] = value;
                     })
                   }
-              ),
+              )
             ],
           )
       );
-    });
+    // });
   }
 
   void addWorldTime () {
@@ -231,10 +227,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
 
-    havedAlarms.toList().map((Object havedAlarm) {
-      addAlarm();
-    });
-
     havedWorldTimes.toList().map((Object havedWorldTime) {
       addWorldTime();
     });
@@ -281,11 +273,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: <Widget>[
                       TextButton(
                         onPressed: () {
-                          /*(BuildContext context) {
-                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddAlarmPage()));
-                          };*/
-                          Navigator.pushNamed(context, '/second');
-                          // addAlarm();
+                          Navigator.pushNamed(context, '/add_alarm');
                         },
                         child: Container(
                             margin: EdgeInsets.only(
@@ -324,10 +312,29 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   SingleChildScrollView(
                     child: Container(
-                        height: 300,
-                        child: Column(
-                          children: alarms
-                        )
+                      height: 300,
+                      child: FutureBuilder(
+                        future: this.handler.retrieveAlarms(),
+                        builder: (BuildContext context, AsyncSnapshot<List<Alarm>> snapshot) {
+                          int snapshotsCount = 0;
+                          if (snapshot.data != null) {
+                            snapshotsCount = snapshot.data!.length;
+                            alarms = [];
+                            for (int snapshotIndex = 0; snapshotIndex < snapshotsCount; snapshotIndex++) {
+                              addAlarm(snapshot.data!.elementAt(snapshotIndex));
+                            }
+                          }
+                          if (snapshot.hasData) {
+                            return Column(
+                                children: alarms
+                            );
+                          } else {
+                            return Column(
+
+                            );
+                          }
+                        }
+                      )
                     )
                   )
                 ]
@@ -359,7 +366,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             )
                           ),
                           onPressed: () {
-                            addWorldTime();
+                            Navigator.pushNamed(context, '/add_world_time');
+                            // addWorldTime();
                           },
                         ),
                         Container(
@@ -845,7 +853,9 @@ class AddAlarmPage extends StatefulWidget {
 
 class _AddAlarmPageState extends State<AddAlarmPage> {
 
-  String mockDate = 'Добавить будильник';
+  late DatabaseHandler handler;
+  String newAlarmDate = '22/11/2000';
+  String alarmSignalName = '';
 
   Future<void> setAlarmDate(BuildContext context) async {
     setState(() async {
@@ -863,9 +873,33 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
               )
           )
       );
-      mockDate = pickedDate.toString();
+      setState(() {
+        bool isDatePick = pickedDate != null;
+        if (isDatePick) {
+          // mockDate = pickedDate.toString();
+          int pickedDateDay = pickedDate.day;
+          int pickedDateMonth = pickedDate.month;
+          int pickedDateYear = pickedDate.year;
+          newAlarmDate = '${pickedDateDay}/${pickedDateMonth}/${pickedDateYear}';
+        }
+      });
     });
 
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    this.handler = DatabaseHandler();
+    this.handler.initializeDB().whenComplete(() async {
+      setState(() {});
+    });
+  }
+
+  Future<int> addNewAlarm(String time, String date, int enabled, String name) async {
+    Alarm firstAlarm = Alarm(time: time, date: date, enabled: enabled, name: name);
+    List<Alarm> listOfAlarms = [firstAlarm];
+    return await this.handler.insertAlarm(listOfAlarms);
   }
 
   @override
@@ -879,9 +913,6 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
         ),
         body: Column(
           children: <Widget>[
-            Text(
-                mockDate
-            ),
             Container(
               child: Column(
                 children: [
@@ -1061,7 +1092,10 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                                   width: 1.0
                               )
                           )
-                      )
+                      ),
+                      onChanged: (String signalName) {
+                        alarmSignalName = signalName;
+                      },
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1158,7 +1192,7 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
               children: [
                 TextButton(
                   onPressed: () {
-
+                    Navigator.pushNamed(context, '/main');
                   },
                   child: Text(
                     'Отмена',
@@ -1173,8 +1207,9 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                   )
                 ),
                 TextButton(
-                    onPressed: () {
-
+                    onPressed: () async {
+                      await this.addNewAlarm('17:00', newAlarmDate, 1, alarmSignalName);
+                      Navigator.pushNamed(context, '/main');
                     },
                     child: Text(
                         'Сохранить',
@@ -1197,3 +1232,122 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
   }
 
 }
+
+class AddWorldTimePage extends StatefulWidget {
+
+  const AddWorldTimePage({Key? key}) : super(key: key);
+
+  @override
+  State<AddWorldTimePage> createState() => _AddWorldTimePageState();
+
+}
+
+class _AddWorldTimePageState extends State<AddWorldTimePage> {
+
+  @override
+  Widget build(BuildContext context) {
+    return (
+        Scaffold(
+            appBar: AppBar(
+                title: Text(
+                    'Добавить мировое время'
+                )
+            ),
+            body: Column(
+                children: <Widget>[
+                  Text(
+                      'asd'
+                  )
+                ]
+            )
+        )
+    );
+  }
+
+}
+
+class Alarm {
+
+  final int? id;
+  final String time;
+  final String date;
+  final int enabled;
+  final String name;
+
+  Alarm({
+    this.id,
+    required this.time,
+    required this.date,
+    required this.enabled,
+    required this.name
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'time': time,
+      'date': date,
+      'enabled': enabled,
+      'name': name
+    };
+  }
+
+  Alarm.fromMap(Map<String, dynamic> res)
+      : id = res["id"],
+        time = res["time"],
+        date = res["date"],
+        enabled = res["enabled"],
+        name = res["name"];
+}
+
+class DatabaseHandler {
+
+  Future<Database> initializeDB() async {
+    String path = await getDatabasesPath();
+    return openDatabase(
+      join(path, 'flutter_alarmes.db'),
+      onCreate: (database, version) async {
+        await database.execute(
+          "CREATE TABLE alarmes(id INTEGER PRIMARY KEY, time TEXT, date TEXT, enabled INTEGER, name TEXT)",
+        );
+      },
+      version: 1,
+    );
+  }
+
+  Future<int> insertAlarm(List<Alarm> alarms) async {
+    int result = 0;
+    final Database db = await initializeDB();
+    for(var alarm in alarms){
+      result = await db.insert('alarmes', alarm.toMap());
+    }
+    return result;
+  }
+
+  Future<List<Alarm>> retrieveAlarms() async {
+    final Database db = await initializeDB();
+    final List<Map<String, Object?>> queryResult = await db.query('alarmes');
+    var returnedAlarms = queryResult.map((e) => Alarm.fromMap(e)).toList();
+    return returnedAlarms;
+  }
+
+  Future<void> deleteAlarm(int id) async {
+    final db = await initializeDB();
+    await db.delete(
+      'alarmes',
+      where: "id = ?",
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> deleteAlarms() async {
+    final db = await initializeDB();
+    await db.delete(
+      'alarmes',
+      where: "id > ?",
+      whereArgs: [0],
+    );
+  }
+
+}
+
