@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:math';
 
@@ -31,6 +32,13 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      routes: {
+        '/first': (context) => const MyHomePage(
+            title: 'Flutter Demo Home Page'
+        ),
+        '/second': (context) => AddAlarmPage()
+      },
+      initialRoute: '/',
     );
   }
 }
@@ -113,78 +121,83 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void addAlarm () {
-    alarms.add(
+    int alarmIndex = alarms.length;
+    setState(() {
+      alarms.add(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              Container(
+                  child: Text(
+                      '06:18',
+                      style: TextStyle(
+                          fontSize: 24
+                      )
+                  )
+              ),
+              Container(
+                child: Text(
+                    'пн, 31 янв.'
+                ),
+              ),
+              Switch(
+                  value: alarmTogglers[alarmIndex],
+                  onChanged: (bool value) => {
+                    setState(() {
+                      alarmTogglers[alarmIndex] = value;
+                    })
+                  }
+              ),
+            ],
+          )
+      );
+    });
+  }
+
+  void addWorldTime () {
+    setState(() {
+      worldTimes.add(
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             Container(
-                child: Text(
-                    '06:18',
-                    style: TextStyle(
-                        fontSize: 24
+                child: Column(
+                  children: <Widget>[
+                    Text(
+                        'Афины',
+                        style: TextStyle(
+                            fontSize: 24
+                        )
+                    ),
+                    Text(
+                        'на 1 час раньше'
                     )
+                  ],
                 )
             ),
             Container(
               child: Text(
-                  'пн, 31 янв.'
+                  '15:26',
+                  style: TextStyle(
+                      fontSize: 24
+                  )
               ),
             ),
-            Switch(
-                value: alarmTogglers[0],
-                onChanged: (bool value) => {
-                  setState(() {
-                    alarmTogglers[0] = value;
-                  })
-                }
-            ),
+            Column(
+              children: <Widget>[
+                Image.asset(
+                    'assets/weather.png',
+                    width: 25
+                ),
+                Text(
+                    '2*'
+                )
+              ],
+            )
           ],
         )
-    );
-  }
-
-  void addWorldTime () {
-    worldTimes.add(
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          Container(
-              child: Column(
-                children: <Widget>[
-                  Text(
-                      'Афины',
-                      style: TextStyle(
-                          fontSize: 24
-                      )
-                  ),
-                  Text(
-                      'на 1 час раньше'
-                  )
-                ],
-              )
-          ),
-          Container(
-            child: Text(
-                '15:26',
-                style: TextStyle(
-                    fontSize: 24
-                )
-            ),
-          ),
-          Column(
-            children: <Widget>[
-              Image.asset(
-                  'assets/weather.png',
-                  width: 25
-              ),
-              Text(
-                  '2*'
-              )
-            ],
-          )
-        ],
-      )
-    );
+      );
+    });
   }
 
   void addCustomTimer() {
@@ -268,7 +281,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: <Widget>[
                       TextButton(
                         onPressed: () {
-                          addAlarm();
+                          /*(BuildContext context) {
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddAlarmPage()));
+                          };*/
+                          Navigator.pushNamed(context, '/second');
+                          // addAlarm();
                         },
                         child: Container(
                             margin: EdgeInsets.only(
@@ -815,4 +832,368 @@ class _MyHomePageState extends State<MyHomePage> {
         )
     );
   }
+}
+
+class AddAlarmPage extends StatefulWidget {
+
+  const AddAlarmPage({Key? key}) : super(key: key);
+
+  @override
+  State<AddAlarmPage> createState() => _AddAlarmPageState();
+
+}
+
+class _AddAlarmPageState extends State<AddAlarmPage> {
+
+  String mockDate = 'Добавить будильник';
+
+  Future<void> setAlarmDate(BuildContext context) async {
+    setState(() async {
+      final DateTime? pickedDate = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime.now().subtract(
+              Duration(
+                  days: 365
+              )
+          ),
+          lastDate: DateTime.now().add(
+              Duration(
+                  days: 365
+              )
+          )
+      );
+      mockDate = pickedDate.toString();
+    });
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return (
+      Scaffold(
+        appBar: AppBar(
+          title: Text(
+              'Добавить будильник'
+          )
+        ),
+        body: Column(
+          children: <Widget>[
+            Text(
+                mockDate
+            ),
+            Container(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      Column(
+                        children: [
+                          Text(
+                            '00',
+                            style: TextStyle(
+                              fontSize: 48
+                            )
+                          ),
+                          Text(
+                              '01',
+                              style: TextStyle(
+                                  fontSize: 48,
+                                  color: Color.fromARGB(255, 200, 200, 200)
+                              )
+                          ),
+                          Text(
+                              '02',
+                              style: TextStyle(
+                                  fontSize: 48,
+                                  color: Color.fromARGB(255, 200, 200, 200)
+                              )
+                          )
+                        ]
+                      ),
+                      Text(
+                        ':',
+                        style: TextStyle(
+                            fontSize: 48
+                        )
+                      ),
+                      Column(
+                        children: [
+                          Text(
+                            '00',
+                              style: TextStyle(
+                                  fontSize: 48
+                              )
+                          ),
+                          Text(
+                              '01',
+                              style: TextStyle(
+                                  fontSize: 48,
+                                  color: Color.fromARGB(255, 200, 200, 200)
+                              )
+                          ),
+                          Text(
+                              '02',
+                              style: TextStyle(
+                                fontSize: 48,
+                                color: Color.fromARGB(255, 200, 200, 200)
+                              )
+                          )
+                        ]
+                      )
+                    ]
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Завтра-вт., 1 фев'
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setAlarmDate(context);
+                        },
+                        child: Icon(
+                          Icons.calendar_today
+                        )
+                      )
+                    ]
+                  ),
+                  Container(
+                    child: Row(
+                      children: [
+                        TextButton(
+                            style: ButtonStyle(
+                                fixedSize: MaterialStateProperty.all(
+                                    Size(
+                                        5.0, 25.0
+                                    )
+                                ),
+
+                            ),
+                            child: Text(
+                                'П',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 10
+                                )
+                            ),
+                            onPressed: () {
+
+                            }
+                        ),
+                        TextButton(
+                            child: Text(
+                                'В',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 10
+                                )
+                            ),
+                            onPressed: () {
+
+                            }
+                        ),
+                        TextButton(
+                            child: Text(
+                                'С',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 10
+                                )
+                            ),
+                            onPressed: () {
+
+                            }
+                        ),
+                        TextButton(
+                            child: Text(
+                                'Ч',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 10
+                                )
+                            ),
+                            onPressed: () {
+
+                            }
+                        ),
+                        TextButton(
+                            child: Text(
+                                'П',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 10
+                                )
+                            ),
+                            onPressed: () {
+
+                            }
+                        ),
+                        TextButton(
+                            style: ButtonStyle(
+                              fixedSize: MaterialStateProperty.all(
+                                Size(
+                                  5.0, 25.0
+                                )
+                              )
+                            ),
+                            child: Text(
+                                'С',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 10
+                                )
+                            ),
+                            onPressed: () {
+
+                            }
+                        )
+                      ]
+                    )
+                  ),
+                  TextField(
+                      decoration: new InputDecoration.collapsed(
+                          hintText: 'Имя сигнала',
+                          border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  width: 1.0
+                              )
+                          )
+                      )
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          Text(
+                           'Звук будильника',
+                            style: TextStyle(
+                              fontSize: 18
+                            )
+                          ),
+                          Text(
+                            'Homecoming',
+                            style: TextStyle(
+                                color: Colors.blue
+                            )
+                          )
+                        ]
+                      ),
+                      Switch(
+                        value: true,
+                        onChanged: (bool value) {
+
+                        }
+                      )
+                    ]
+                  ),
+                  Divider(
+                    thickness: 1.0
+                  ),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                            children: [
+                              Text(
+                                  'Вибрация',
+                                  style: TextStyle(
+                                      fontSize: 18
+                                  )
+                              ),
+                              Text(
+                                  'Basic call',
+                                  style: TextStyle(
+                                      color: Colors.blue
+                                  )
+                              )
+                            ]
+                        ),
+                        Switch(
+                            value: true,
+                            onChanged: (bool value) {
+
+                            }
+                        )
+                      ]
+                  ),
+                  Divider(
+                      thickness: 1.0
+                  ),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                            children: [
+                              Text(
+                                  'Пауза',
+                                  style: TextStyle(
+                                      fontSize: 18
+                                  )
+                              ),
+                              Text(
+                                  '5 минут, 3 раза',
+                                  style: TextStyle(
+                                      color: Colors.blue
+                                  )
+                              )
+                            ]
+                        ),
+                        Switch(
+                            value: true,
+                            onChanged: (bool value) {
+
+                            }
+                        )
+                      ]
+                  )
+                ]
+              )
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                TextButton(
+                  onPressed: () {
+
+                  },
+                  child: Text(
+                    'Отмена',
+                    style: TextStyle(
+                      fontSize: 18
+                    )
+                  ),
+                  style: ButtonStyle(
+                    foregroundColor: MaterialStateProperty.all(
+                        Colors.black
+                    )
+                  )
+                ),
+                TextButton(
+                    onPressed: () {
+
+                    },
+                    child: Text(
+                        'Сохранить',
+                        style: TextStyle(
+                            fontSize: 18
+                        ),
+                    ),
+                    style: ButtonStyle(
+                        foregroundColor: MaterialStateProperty.all(
+                            Colors.black
+                        )
+                    )
+                )
+              ]
+            )
+          ]
+        )
+      )
+    );
+  }
+
 }
