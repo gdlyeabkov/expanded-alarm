@@ -10,8 +10,22 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-void main() async {
+// import 'package:appspector/appspector.dart';
+import 'package:sqlite_viewer/sqlite_viewer.dart';
 
+/*void runAppSpector() {
+  final config = Config()
+    ..iosApiKey = "Your iOS API_KEY"
+    ..androidApiKey = "Your Android API_KEY";
+
+  // If you don't want to start all monitors you can specify a list of necessary ones
+  config.monitors = [Monitors.http, Monitors.logs, Monitors.screenshot];
+
+  AppSpectorPlugin.run(config);
+}*/
+
+void main() async {
+  // runAppSpector();
   runApp(const MyApp());
 }
 
@@ -150,8 +164,9 @@ class _MyHomePageState extends State<MyHomePage> {
     // });
   }
 
-  void addWorldTime () {
-    setState(() {
+  void addWorldTime (WorldTime worldTime) {
+    // setState(() {
+      String worldTimeCityName = worldTime.name;
       worldTimes.add(
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -160,7 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Column(
                   children: <Widget>[
                     Text(
-                        'Афины',
+                        worldTimeCityName,
                         style: TextStyle(
                             fontSize: 24
                         )
@@ -193,7 +208,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         )
       );
-    });
+    // });
   }
 
   void addCustomTimer() {
@@ -227,9 +242,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
 
-    havedWorldTimes.toList().map((Object havedWorldTime) {
+    /*havedWorldTimes.toList().map((Object havedWorldTime) {
       addWorldTime();
-    });
+    });*/
 
     return DefaultTabController(
         initialIndex: 1,
@@ -393,8 +408,29 @@ class _MyHomePageState extends State<MyHomePage> {
                         )
                       ],
                     ),
-                    Column(
-                      children: worldTimes,
+                    Container(
+                      child: FutureBuilder(
+                          future: this.handler.retrieveWorldTimes(),
+                          builder: (BuildContext context, AsyncSnapshot<List<WorldTime>> snapshot) {
+                            int snapshotsCount = 0;
+                            if (snapshot.data != null) {
+                              snapshotsCount = snapshot.data!.length;
+                              worldTimes = [];
+                              for (int snapshotIndex = 0; snapshotIndex < snapshotsCount; snapshotIndex++) {
+                                addWorldTime(snapshot.data!.elementAt(snapshotIndex));
+                              }
+                            }
+                            if (snapshot.hasData) {
+                              return Column(
+                                  children: worldTimes
+                              );
+                            } else {
+                              return Column(
+
+                              );
+                            }
+                          }
+                      )
                     )
                   ]
               ),
@@ -832,6 +868,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: <Widget>[
                   Text(
                     'Запущенный таймер'
+                  ),
+                  TextButton(
+                    child: Text(
+                      'DB'
+                    ),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => DatabaseList()));
+                    }
                   )
                 ],
               )
@@ -1244,6 +1288,24 @@ class AddWorldTimePage extends StatefulWidget {
 
 class _AddWorldTimePageState extends State<AddWorldTimePage> {
 
+  late DatabaseHandler handler;
+  String newCityName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    this.handler = DatabaseHandler();
+    this.handler.initializeDB().whenComplete(() async {
+      setState(() {});
+    });
+  }
+
+  Future<int> addNewWorldTime(String cityName) async {
+    WorldTime worldTime = WorldTime(name: cityName);
+    List<WorldTime> worldTimes = [worldTime];
+    return await this.handler.insertWorldTime(worldTimes);
+  }
+
   @override
   Widget build(BuildContext context) {
     return (
@@ -1255,8 +1317,32 @@ class _AddWorldTimePageState extends State<AddWorldTimePage> {
             ),
             body: Column(
                 children: <Widget>[
-                  Text(
-                      'asd'
+                  TextField(
+                    onChanged: (value) {
+                      newCityName = value;
+                    },
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                          style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(
+                                  Colors.blue
+                              )
+                          ),
+                          child: Text(
+                              'Добавить мировое время',
+                              style: TextStyle(
+                                  color: Colors.white
+                              )
+                          ),
+                          onPressed: () {
+                            addNewWorldTime(newCityName);
+                            Navigator.pushNamed(context, '/main');
+                          }
+                      )
+                    ]
                   )
                 ]
             )
@@ -1308,8 +1394,19 @@ class DatabaseHandler {
       join(path, 'flutter_alarmes.db'),
       onCreate: (database, version) async {
         await database.execute(
-          "CREATE TABLE alarmes(id INTEGER PRIMARY KEY, time TEXT, date TEXT, enabled INTEGER, name TEXT)",
+          "CREATE TABLE alarms(id INTEGER PRIMARY KEY, time TEXT, date TEXT, enabled INTEGER, name TEXT)"
         );
+        await database.execute(
+            "CREATE TABLE worldtimes(id INTEGER PRIMARY KEY, name TEXT)"
+        );
+      },
+      onOpen: (database) async {
+        /*await database.execute(
+            "CREATE TABLE alarms(id INTEGER PRIMARY KEY, time TEXT, date TEXT, enabled INTEGER, name TEXT);"
+        );
+        await database.execute(
+            "CREATE TABLE worldtimes(id INTEGER PRIMARY KEY, name TEXT);"
+        );*/
       },
       version: 1,
     );
@@ -1319,14 +1416,14 @@ class DatabaseHandler {
     int result = 0;
     final Database db = await initializeDB();
     for(var alarm in alarms){
-      result = await db.insert('alarmes', alarm.toMap());
+      result = await db.insert('alarms', alarm.toMap());
     }
     return result;
   }
 
   Future<List<Alarm>> retrieveAlarms() async {
     final Database db = await initializeDB();
-    final List<Map<String, Object?>> queryResult = await db.query('alarmes');
+    final List<Map<String, Object?>> queryResult = await db.query('alarms');
     var returnedAlarms = queryResult.map((e) => Alarm.fromMap(e)).toList();
     return returnedAlarms;
   }
@@ -1334,7 +1431,7 @@ class DatabaseHandler {
   Future<void> deleteAlarm(int id) async {
     final db = await initializeDB();
     await db.delete(
-      'alarmes',
+      'alarms',
       where: "id = ?",
       whereArgs: [id],
     );
@@ -1343,11 +1440,48 @@ class DatabaseHandler {
   Future<void> deleteAlarms() async {
     final db = await initializeDB();
     await db.delete(
-      'alarmes',
+      'alarms',
       where: "id > ?",
       whereArgs: [0],
     );
   }
 
+  Future<int> insertWorldTime(List<WorldTime> worldTimes) async {
+    int result = 0;
+    final Database db = await initializeDB();
+    for(var worldTime in worldTimes){
+      result = await db.insert('worldtimes', worldTime.toMap());
+    }
+    return result;
+  }
+
+  Future<List<WorldTime>> retrieveWorldTimes() async {
+    final Database db = await initializeDB();
+    final List<Map<String, Object?>> queryResult = await db.query('worldtimes');
+    var returnedWorldTimes = queryResult.map((e) => WorldTime.fromMap(e)).toList();
+    return returnedWorldTimes;
+  }
+
 }
 
+class WorldTime {
+
+  final int? id;
+  final String name;
+
+  WorldTime({
+    this.id,
+    required this.name
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name
+    };
+  }
+
+  WorldTime.fromMap(Map<String, dynamic> res)
+    : id = res["id"],
+      name = res["name"];
+}
