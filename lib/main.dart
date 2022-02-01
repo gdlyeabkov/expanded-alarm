@@ -124,7 +124,6 @@ class _MyHomePageState extends State<MyHomePage> {
     'Saturday': 'сб',
     'Sunday': 'вс'
   };
-
   var monthsLabels = <int, String>{
     0: 'янв.',
     1: 'февр.',
@@ -139,6 +138,20 @@ class _MyHomePageState extends State<MyHomePage> {
     10: 'ноя.',
     11: 'дек'
   };
+  bool isStartTimer = false;
+  String stopWatchStartBtnStopLabel = 'Стоп';
+  String stopWatchStartBtnStartLabel = 'Начать';
+  String stopWatchStartBtnResumeLabel = 'Продолж.';
+  String stopWatchStartBtnTitle = '';
+  String stopWatchIntervalBtnResetLabel = 'Сбросить';
+  String stopWatchIntervalBtnIntervalLabel = 'Интервал';
+  String stopWatchIntervalBtnTitle = '';
+  bool isStopWatchIntervalBtnDisalbled = true;
+  List<Widget> intervals = [];
+  Timer? stopWatchCircleTimer = null;
+  int circleHours = 0;
+  int circleMinutes = 0;
+  int circleSeconds = 0;
 
   @override
   void initState() {
@@ -146,7 +159,10 @@ class _MyHomePageState extends State<MyHomePage> {
     this.handler = DatabaseHandler();
     this.handler.initializeDB().whenComplete(() async {
       // await this.deleteAlarms();
-      setState(() {});
+      setState(() {
+        stopWatchIntervalBtnTitle = stopWatchIntervalBtnIntervalLabel;
+        stopWatchStartBtnTitle = stopWatchStartBtnStartLabel;
+      });
     });
   }
 
@@ -232,7 +248,21 @@ class _MyHomePageState extends State<MyHomePage> {
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
-      throw Exception('Failed to load album');
+      throw Exception('Failed to load city weather');
+    }
+  }
+
+  Future<CityWorldTimeResponse> fetchCityWorldTime(String cityName) async {
+    final response = await http.get(Uri.parse('https://worldtimeapi.org/api/timezone/Europe/${cityName}'));
+
+    if (response.statusCode == 200) {
+      // If the server did return a 200 OK response,
+      // then parse the JSON.
+      return CityWorldTimeResponse.fromJson(jsonDecode(response.body));
+    } else {
+      // If the server did not return a 200 OK response,
+      // then throw an exception.
+      throw Exception('Failed to load city world time');
     }
   }
 
@@ -240,6 +270,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // setState(() {
       String worldTimeCityName = worldTime.name;
       Future<CityWeatherResponse> parsedWeather = fetchCityWeather(worldTimeCityName);
+      Future<CityWorldTimeResponse> parsedWorldTime = fetchCityWorldTime(worldTimeCityName);
       worldTimes.add(
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -268,11 +299,34 @@ class _MyHomePageState extends State<MyHomePage> {
                     left: 0,
                     right: 25
                   ),
-                  child: Text(
-                      '15:26',
-                      style: TextStyle(
-                          fontSize: 24
-                      )
+                  child: FutureBuilder<CityWorldTimeResponse>(
+                    future: parsedWorldTime,
+                    builder: (context, snapshot) {
+                      bool isHasData = snapshot.hasData;
+                      if (isHasData) {
+                        var snapshotData = snapshot.data!;
+                        String cityWorldDatetime = snapshotData.datetime;
+                        List<String> cityWorldDateAndTime = cityWorldDatetime.split('T');
+                        String cityWorldTime = cityWorldDateAndTime[1];
+                        List<String> cityWorldTimeMinutesAndHours = cityWorldTime.split(':');
+                        String cityWorldTimeHours = cityWorldTimeMinutesAndHours[0];
+                        String cityWorldTimeMinutes = cityWorldTimeMinutesAndHours[1];
+                        String rawCityWorldTime = '${cityWorldTimeHours}:${cityWorldTimeMinutes}';
+                        return Text(
+                          rawCityWorldTime,
+                          style: TextStyle(
+                              fontSize: 24
+                          )
+                        );
+                      } else {
+                        return Text(
+                          'Неизвестно',
+                          style: TextStyle(
+                            fontSize: 24
+                          )
+                        );
+                      }
+                    }
                   ),
                 ),
                 Column(
@@ -346,6 +400,106 @@ class _MyHomePageState extends State<MyHomePage> {
     // });
   }
 
+  void addInterval() {
+    bool isCircleBegin = stopWatchCircleTimer != null;
+    if (isCircleBegin) {
+      stopWatchCircleTimer!.cancel();
+    }
+    String circleTime = '00:00:00';
+    String rawCircleHours = '00';
+    if (circleHours <= 9) {
+      rawCircleHours = '0${circleHours}';
+    }
+    String rawCircleMinutes = '00';
+    if (circleMinutes <= 9) {
+      rawCircleMinutes = '0${circleMinutes}';
+    }
+    String rawCircleSeconds = '00';
+    if (circleSeconds <= 9) {
+      rawCircleSeconds = '0${circleSeconds}';
+    }
+    circleTime = '${rawCircleHours}:${rawCircleMinutes}:${rawCircleSeconds}';
+    String totalTime = stopWatchTitle;
+    int circlesCount = intervals.length;
+    int circleLabel = circlesCount + 1;
+    String rawCircleLabel = circleLabel.toString();
+    bool isCircleTop9 = circleLabel <= 9;
+    if (isCircleTop9) {
+      String prefixedCircleLabel = '${oneCharPrefix}${rawCircleLabel}';
+      rawCircleLabel = prefixedCircleLabel;
+    }
+    Row interval = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        Text(
+          rawCircleLabel,
+          style: TextStyle(
+            color: Color.fromARGB(255, 150, 150, 150)
+          )
+        ),
+        Text(
+            circleTime,
+            style: TextStyle(
+              color: Color.fromARGB(255, 150, 150, 150)
+            )
+        ),
+        Text(
+          totalTime
+        )
+      ]
+    );
+
+    setState(() {
+      intervals.add(interval);
+    });
+
+    setState(() {
+      circleHours = 0;
+      circleMinutes = 0;
+      circleSeconds = 0;
+      stopWatchCircleTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          circleSeconds++;
+        });
+        bool isToggleSecond = circleSeconds == countSecondsInMinute;
+        if (isToggleSecond) {
+          setState(() {
+            circleSeconds = initialSeconds;
+            circleMinutes++;
+          });
+          bool isToggleHour = circleMinutes == countMinutesInHour;
+          if (isToggleHour) {
+            setState(() {
+              circleMinutes = initialMinutes;
+              circleHours++;
+            });
+          }
+        }
+        String updatedHoursText = '${circleHours}';
+        int countHoursChars = updatedHoursText.length;
+        bool isAddHoursPrefix = countHoursChars == 1;
+        if (isAddHoursPrefix) {
+          updatedHoursText = oneCharPrefix + updatedHoursText;
+        }
+        String updatedMinutesText = '${circleMinutes}';
+        int countMinutesChars = updatedMinutesText.length;
+        bool isAddMinutesPrefix = countMinutesChars == 1;
+        if (isAddMinutesPrefix) {
+          updatedMinutesText = oneCharPrefix + updatedMinutesText;
+        }
+        String updatedSecondsText = '${circleSeconds}';
+        int countSecondsChars = updatedSecondsText.length;
+        bool isAddSecondsPrefix = countSecondsChars == 1;
+        if (isAddSecondsPrefix) {
+          updatedSecondsText = oneCharPrefix + updatedSecondsText;
+        }
+        String currentTime = updatedHoursText + ":" + updatedMinutesText + ":" + updatedSecondsText;
+        circleTime = currentTime;
+      });
+    });
+
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -417,9 +571,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: Icon(
                                 Icons.add
                             )
-                        )
-                      ),
-                      Container(
+                          )
+                        ),
+                        Container(
                           margin: EdgeInsets.only(
                               bottom: 15,
                               top: 15,
@@ -585,9 +739,36 @@ class _MyHomePageState extends State<MyHomePage> {
                         fontSize: 36
                     ),
                   ),
+                  intervals.length >= 1 ?
+                    Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(
+                              'Круг'
+                            ),
+                            Text(
+                              'Время круга'
+                            ),
+                            Text(
+                              'Общее время'
+                            )
+                          ]
+                        ),
+                        Divider(
+                          thickness: 1.0
+                        ),
+                        Column(
+                          children: intervals
+                        )
+                      ]
+                    )
+                  :
+                    Column(),
                   Container(
                     margin: EdgeInsets.only(
-                      top: 350,
+                      top: 250,
                       bottom: 50,
                       left: 0,
                       right: 0
@@ -595,6 +776,54 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: <Widget>[
+                        IgnorePointer(
+                          ignoring: isStopWatchIntervalBtnDisalbled,
+                          child: TextButton(
+                            style: ButtonStyle(
+                                textStyle: MaterialStateProperty.all(
+                                    TextStyle(
+                                        fontSize: 18
+                                    )
+                                ),
+                                backgroundColor: MaterialStateProperty.all(Color.fromARGB(255, 225, 225, 225)),
+                                foregroundColor: MaterialStateProperty.all(
+                                    Color.fromARGB(255, 0, 0, 0)
+                                ),
+                                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18.0),
+                                        side: BorderSide(
+                                            color: Colors.transparent
+                                        )
+                                    )
+                                ),
+                                fixedSize: MaterialStateProperty.all<Size>(
+                                    Size(
+                                        100.0,
+                                        45.0
+                                    )
+                                )
+                            ),
+                            onPressed: () {
+                              bool isResetAction = stopWatchIntervalBtnTitle == stopWatchIntervalBtnResetLabel;
+                              if (isResetAction) {
+                                setState(() {
+                                  isStopWatchIntervalBtnDisalbled = true;
+                                  stopWatchIntervalBtnTitle = stopWatchIntervalBtnIntervalLabel;
+                                  stopWatchTitle = '00:00:00';
+                                  stopWatchStartBtnTitle = stopWatchStartBtnStartLabel;
+                                  intervals = [];
+                                });
+                              } else {
+                                addInterval();
+                              }
+                            },
+                            child: Text(
+                                stopWatchIntervalBtnTitle
+                            ),
+
+                          )
+                        ),
                         TextButton(
                           style: ButtonStyle(
                               textStyle: MaterialStateProperty.all(
@@ -602,14 +831,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                       fontSize: 18
                                   )
                               ),
-                              backgroundColor: MaterialStateProperty.all(Color.fromARGB(255, 225, 225, 225)),
-                              foregroundColor: MaterialStateProperty.all(Color.fromARGB(255, 150, 150, 150)),
+                              backgroundColor: MaterialStateProperty.all(
+                                  stopWatchStartBtnTitle == stopWatchStartBtnStopLabel ?
+                                    Color.fromARGB(255, 255, 0, 0)
+                                  :
+                                    Color.fromARGB(255, 0, 0, 225)
+                              ),
+                              foregroundColor: MaterialStateProperty.all(Color.fromARGB(255, 255, 255, 255)),
                               shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                                   RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(18.0),
                                       side: BorderSide(
-                                          color: Colors.transparent
-                                      )
+                                          color: Colors.transparent)
                                   )
                               ),
                               fixedSize: MaterialStateProperty.all<Size>(
@@ -620,13 +853,338 @@ class _MyHomePageState extends State<MyHomePage> {
                               )
                           ),
                           onPressed: () {
-
+                            setState(() {
+                              isStopWatchIntervalBtnDisalbled = false;
+                            });
+                            bool isNotStart = !isStartStopWatch;
+                            if (isNotStart) {
+                              setState(() {
+                                // stopWatchTitle = '00:00:00';
+                                stopWatchStartBtnTitle = stopWatchStartBtnStopLabel;
+                              });
+                              stopWatchTimer = new Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+                                List<String> timeParts = stopWatchTitle.split(stopWatchTitleSeparator);
+                                String rawHours = timeParts[0];
+                                String rawMinutes = timeParts[1];
+                                String rawSeconds = timeParts[2];
+                                int hours = int.parse(rawHours);
+                                int minutes = int.parse(rawMinutes);
+                                int seconds = int.parse(rawSeconds);
+                                seconds++;
+                                bool isToggleSecond = seconds == countSecondsInMinute;
+                                if (isToggleSecond) {
+                                  seconds = initialSeconds;
+                                  minutes++;
+                                  bool isToggleHour = minutes == countMinutesInHour;
+                                  if (isToggleHour) {
+                                    minutes = initialMinutes;
+                                    hours++;
+                                  }
+                                }
+                                String updatedHoursText = '${hours}';
+                                int countHoursChars = updatedHoursText.length;
+                                bool isAddHoursPrefix = countHoursChars == 1;
+                                if (isAddHoursPrefix) {
+                                  updatedHoursText = oneCharPrefix + updatedHoursText;
+                                }
+                                String updatedMinutesText = '${minutes}';
+                                int countMinutesChars = updatedMinutesText.length;
+                                bool isAddMinutesPrefix = countMinutesChars == 1;
+                                if (isAddMinutesPrefix) {
+                                  updatedMinutesText = oneCharPrefix + updatedMinutesText;
+                                }
+                                String updatedSecondsText = '${seconds}';
+                                int countSecondsChars = updatedSecondsText.length;
+                                bool isAddSecondsPrefix = countSecondsChars == 1;
+                                if (isAddSecondsPrefix) {
+                                  updatedSecondsText = oneCharPrefix + updatedSecondsText;
+                                }
+                                String currentTime = updatedHoursText + ":" + updatedMinutesText + ":" + updatedSecondsText;
+                                setState(() {
+                                  stopWatchTitle = currentTime;
+                                });
+                              });
+                            } else {
+                              setState(() {
+                                stopWatchStartBtnTitle = stopWatchStartBtnResumeLabel;
+                                // stopWatchTitle = '${new Random().nextInt(5000)}:${new Random().nextInt(5000)}:${new Random().nextInt(5000)}';
+                                stopWatchIntervalBtnTitle = stopWatchIntervalBtnResetLabel;
+                              });
+                              stopWatchTimer.cancel();
+                            }
+                            setState(() {
+                              isStartStopWatch = !isStartStopWatch;
+                            });
                           },
                           child: Text(
-                              'Интервал'
+                              stopWatchStartBtnTitle
                           ),
+                        )
+                      ],
+                    )
+                  )
+                ]
+              ),
+              !isStartTimer ?
+                Column(
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          TextButton(
+                            child: Container(
+                              margin: EdgeInsets.only(
+                                bottom: 15,
+                                top: 15,
+                                left: 25,
+                                right: 25
+                              ),
+                              child: Icon(
+                                  Icons.add
+                              )
+                            ),
+                            onPressed: () {
+                              showDialog<String>(
+                                  context: context,
+                                  builder: (BuildContext context) => AlertDialog(
+                                    title: const Text('Добавление готового таймера'),
+                                    content: Container(
+                                      height: 300,
+                                      child: Column(
+                                        children: <Widget>[
+                                          Container(
+                                            child: TextField(
+
+                                            ),
+                                            padding: EdgeInsets.only(
+                                                top: 25,
+                                                bottom: 25,
+                                                left: 0,
+                                                right: 0
+                                            ),
+                                            margin: EdgeInsets.only(
+                                              top: 25,
+                                              bottom: 25,
+                                              left: 0,
+                                              right: 0
+                                            ),
+                                          ),
+                                          Container(
+                                            child: TextField(
+                                                decoration: new InputDecoration.collapsed(
+                                                    hintText: 'Название готового таймера',
+                                                    border: OutlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            width: 1.0
+                                                        )
+                                                    )
+                                                )
+                                            ),
+                                            padding: EdgeInsets.only(
+                                                top: 25,
+                                                bottom: 25,
+                                                left: 0,
+                                                right: 0
+                                            ),
+                                            margin: EdgeInsets.only(
+                                                top: 25,
+                                                bottom: 25,
+                                                left: 0,
+                                                right: 0
+                                            ),
+                                          )
+                                        ],
+                                      )
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, 'Cancel'),
+                                        child: const Text('Отмена')
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          // addCustomTimer();
+                                          addNewCustomTimer('00', '00', '00');
+                                          return Navigator.pop(context, 'OK');
+                                        },
+                                        child: const Text('Добавить')
+                                      )
+                                    ],
+                                  )
+                              );
+                            },
+                          ),
+                          Container(
+                              margin: EdgeInsets.only(
+                                  bottom: 15,
+                                  top: 15,
+                                  left: 25,
+                                  right: 25
+                              ),
+                              child: PopupMenuButton(
+                                itemBuilder: (BuildContext context) {
+                                  return timerPopupMenuItemsHeaders.map((String timerPopupMenuItemsHeader) {
+                                    return  PopupMenuItem<String>(
+                                      value: timerPopupMenuItemsHeader,
+                                      child: Text(timerPopupMenuItemsHeader),
+                                    );
+                                  }).toList();
+                                },
+                              child: Icon(
+                                Icons.more_vert
+                              )
+                            )
+                          )
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          Column(
+                            children: <Widget>[
+                              Container(
+                                child: Text(
+                                    'ч.'
+                                ),
+                              ),
+                              Container(
+                                  child: Text(
+                                      '00',
+                                      style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold
+                                      )
+                                  )
+                              ),
+                              Container(
+                                  child: Text(
+                                      '01',
+                                      style: TextStyle(
+                                          fontSize: 24
+                                      )
+                                  )
+                              ),
+                              Container(
+                                child: Text(
+                                    '02',
+                                    style: TextStyle(
+                                        fontSize: 24
+                                    )
+                                )
+                              )
+                            ],
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: <Widget>[
+                              Container(
+                                child: Text(
+                                    'мин.'
+                                ),
+                              ),
+                              Container(
+                                  child: Text(
+                                      '00',
+                                      style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold
+                                      )
+                                  )
+                              ),
+                              Container(
+                                  child: Text(
+                                      '01',
+                                      style: TextStyle(
+                                          fontSize: 24
+                                      )
+                                  )
+                              ),
+                              Container(
+                                  child: Text(
+                                      '02',
+                                      style: TextStyle(
+                                          fontSize: 24
+                                      )
+                                  )
+                              )
+                            ],
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: <Widget>[
+                              Container(
+                                child: Text(
+                                    'сек.'
+                                ),
+                              ),
+                              Container(
+                                  child: Text(
+                                      '00',
+                                      style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold
+                                      )
+                                  )
+                              ),
+                              Container(
+                                  child: Text(
+                                      '01',
+                                      style: TextStyle(
+                                          fontSize: 24
+                                      )
+                                  )
+                              ),
+                              Container(
+                                  child: Text(
+                                      '02',
+                                      style: TextStyle(
+                                          fontSize: 24
+                                      )
+                                  )
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                      SingleChildScrollView(
+                        child: FutureBuilder(
+                            future: this.handler.retrieveCustomTimers(),
+                            builder: (BuildContext context, AsyncSnapshot<List<CustomTimer>> snapshot) {
+                              int snapshotsCount = 0;
+                              if (snapshot.data != null) {
+                                snapshotsCount = snapshot.data!.length;
+                                customTimers = [];
+                                for (int snapshotIndex = 0; snapshotIndex < snapshotsCount; snapshotIndex++) {
+                                  addCustomTimer(snapshot.data!.elementAt(snapshotIndex));
+                                }
+                              }
+                              if (snapshot.hasData) {
+                                return Row(
+                                  children: customTimers
+                                );
+                              } else {
+                                return Column(
+
+                                );
+                              }
+                            }
+                        )
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(
+                          top: 115,
+                          bottom: 0,
+                          left: 0,
+                          right: 0
                         ),
-                        TextButton(
+                        child: TextButton(
+                          onPressed: () {
+                            // Navigator.pushNamed(context, '/started_timer');
+                            setState(() {
+                              isStartTimer = true;
+                              // здесь
+                            });
+                          },
                           style: ButtonStyle(
                               textStyle: MaterialStateProperty.all(
                                   TextStyle(
@@ -649,90 +1207,30 @@ class _MyHomePageState extends State<MyHomePage> {
                                   )
                               )
                           ),
-                          onPressed: () {
-                            bool isNotStart = !isStartStopWatch;
-                            if (isNotStart) {
-                              stopWatchTimer = new Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-                                /*setState(() {
-                                  stopWatchTitle = "00:00:00";
-                                });*/
-                                List<String> timeParts = stopWatchTitle.split(stopWatchTitleSeparator);
-                                String rawHours = timeParts[0];
-                                String rawMinutes = timeParts[1];
-                                String rawSeconds = timeParts[2];
-                                int hours = rawHours as int;
-                                int minutes = rawMinutes as int;
-                                int seconds = rawSeconds as int;
-                                seconds++;
-                                bool isToggleSecond = seconds == countSecondsInMinute;
-                                if (isToggleSecond) {
-                                  seconds = initialSeconds;
-                                  minutes++;
-                                  bool isToggleHour = minutes == countMinutesInHour;
-                                  if (isToggleHour) {
-                                    minutes = initialMinutes;
-                                    hours++;
-                                  }
-                                }
-                                String updatedHoursText = hours as String;
-                                int countHoursChars = updatedHoursText.length;
-                                bool isAddHoursPrefix = countHoursChars == 1;
-                                if (isAddHoursPrefix) {
-                                  updatedHoursText = oneCharPrefix + updatedHoursText;
-                                }
-                                String updatedMinutesText = minutes as String;
-                                int countMinutesChars = updatedMinutesText.length;
-                                bool isAddMinutesPrefix = countMinutesChars == 1;
-                                if (isAddMinutesPrefix) {
-                                  updatedMinutesText = oneCharPrefix + updatedMinutesText;
-                                }
-                                String updatedSecondsText = seconds as String;
-                                int countSecondsChars = updatedSecondsText.length;
-                                bool isAddSecondsPrefix = countSecondsChars == 1;
-                                if (isAddSecondsPrefix) {
-                                  updatedSecondsText = oneCharPrefix + updatedSecondsText;
-                                }
-                                String currentTime = updatedHoursText + ":" + updatedMinutesText + ":" + updatedSecondsText;
-                                setState(() {
-                                  stopWatchTitle = currentTime;
-                                });
-
-                              });
-
-                            } else {
-                              setState(() {
-                                stopWatchTitle = new Random().nextInt(5000).toString();
-                              });
-                            }
-                            setState(() {
-                              isStartStopWatch = !isStartStopWatch;
-                            });
-                          },
                           child: Text(
-                              'Начать'
+                            'Начать'
                           ),
                         )
-                      ],
-                    )
-                  )
-                ]
-              ),
-              Column(
+                      )
+                    ]
+                )
+              :
+                Column(
                   children: <Widget>[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
                         TextButton(
                           child: Container(
-                            margin: EdgeInsets.only(
-                              bottom: 15,
-                              top: 15,
-                              left: 25,
-                              right: 25
-                            ),
-                            child: Icon(
-                                Icons.add
-                            )
+                              margin: EdgeInsets.only(
+                                  bottom: 15,
+                                  top: 15,
+                                  left: 25,
+                                  right: 25
+                              ),
+                              child: Icon(
+                                  Icons.add
+                              )
                           ),
                           onPressed: () {
                             showDialog<String>(
@@ -740,65 +1238,65 @@ class _MyHomePageState extends State<MyHomePage> {
                                 builder: (BuildContext context) => AlertDialog(
                                   title: const Text('Добавление готового таймера'),
                                   content: Container(
-                                    height: 300,
-                                    child: Column(
-                                      children: <Widget>[
-                                        Container(
-                                          child: TextField(
+                                      height: 300,
+                                      child: Column(
+                                        children: <Widget>[
+                                          Container(
+                                            child: TextField(
 
+                                            ),
+                                            padding: EdgeInsets.only(
+                                                top: 25,
+                                                bottom: 25,
+                                                left: 0,
+                                                right: 0
+                                            ),
+                                            margin: EdgeInsets.only(
+                                                top: 25,
+                                                bottom: 25,
+                                                left: 0,
+                                                right: 0
+                                            ),
                                           ),
-                                          padding: EdgeInsets.only(
-                                              top: 25,
-                                              bottom: 25,
-                                              left: 0,
-                                              right: 0
-                                          ),
-                                          margin: EdgeInsets.only(
-                                            top: 25,
-                                            bottom: 25,
-                                            left: 0,
-                                            right: 0
-                                          ),
-                                        ),
-                                        Container(
-                                          child: TextField(
-                                              decoration: new InputDecoration.collapsed(
-                                                  hintText: 'Название готового таймера',
-                                                  border: OutlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                          width: 1.0
-                                                      )
-                                                  )
-                                              )
-                                          ),
-                                          padding: EdgeInsets.only(
-                                              top: 25,
-                                              bottom: 25,
-                                              left: 0,
-                                              right: 0
-                                          ),
-                                          margin: EdgeInsets.only(
-                                              top: 25,
-                                              bottom: 25,
-                                              left: 0,
-                                              right: 0
-                                          ),
-                                        )
-                                      ],
-                                    )
+                                          Container(
+                                            child: TextField(
+                                                decoration: new InputDecoration.collapsed(
+                                                    hintText: 'Название готового таймера',
+                                                    border: OutlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            width: 1.0
+                                                        )
+                                                    )
+                                                )
+                                            ),
+                                            padding: EdgeInsets.only(
+                                                top: 25,
+                                                bottom: 25,
+                                                left: 0,
+                                                right: 0
+                                            ),
+                                            margin: EdgeInsets.only(
+                                                top: 25,
+                                                bottom: 25,
+                                                left: 0,
+                                                right: 0
+                                            ),
+                                          )
+                                        ],
+                                      )
                                   ),
                                   actions: <Widget>[
                                     TextButton(
-                                      onPressed: () => Navigator.pop(context, 'Cancel'),
-                                      child: const Text('Отмена')
+                                        onPressed: () => Navigator.pop(context, 'Cancel'),
+                                        child: const Text('Отмена')
                                     ),
                                     TextButton(
-                                      onPressed: () {
-                                        // addCustomTimer();
-                                        addNewCustomTimer('00', '00', '00');
-                                        return Navigator.pop(context, 'OK');
-                                      },
-                                      child: const Text('Добавить')
+                                        onPressed: () {
+                                          // addCustomTimer();
+                                          addNewCustomTimer('00', '00', '00');
+                                          return Navigator.pop(context, 'OK');
+                                        },
+                                        child: const Text('Добавить')
                                     )
                                   ],
                                 )
@@ -813,194 +1311,111 @@ class _MyHomePageState extends State<MyHomePage> {
                                 right: 25
                             ),
                             child: PopupMenuButton(
-                              itemBuilder: (BuildContext context) {
-                                return timerPopupMenuItemsHeaders.map((String timerPopupMenuItemsHeader) {
-                                  return  PopupMenuItem<String>(
-                                    value: timerPopupMenuItemsHeader,
-                                    child: Text(timerPopupMenuItemsHeader),
-                                  );
-                                }).toList();
-                              },
-                            child: Icon(
-                              Icons.more_vert
+                                itemBuilder: (BuildContext context) {
+                                  return timerPopupMenuItemsHeaders.map((String timerPopupMenuItemsHeader) {
+                                    return  PopupMenuItem<String>(
+                                      value: timerPopupMenuItemsHeader,
+                                      child: Text(timerPopupMenuItemsHeader),
+                                    );
+                                  }).toList();
+                                },
+                                child: Icon(
+                                    Icons.more_vert
+                                )
                             )
-                          )
                         )
                       ],
+                    ),
+                    Container(
+                        alignment: Alignment.center,
+                        height: 300.0,
+                        width: 300.0,
+                        margin: EdgeInsets.only(
+                            top: 25,
+                            bottom: 50,
+                            left: 15,
+                            right: 15
+                        ),
+                        decoration: BoxDecoration(
+                          color: Color.fromARGB(255, 200, 200, 200),
+                          borderRadius: BorderRadius.circular(150),
+                        ),
+                        child: Text(
+                          '00:00:00',
+                          style: TextStyle(
+                            fontSize: 36
+                          )
+                        )
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        Column(
-                          children: <Widget>[
-                            Container(
-                              child: Text(
-                                  'ч.'
-                              ),
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            setState((){
+                              isStartTimer = false;
+                            });
+                          },
+                          child: Text(
+                            'Отмена',
+                            style: TextStyle(
+                              fontSize: 18
+                            )
+                          ),
+                          style: ButtonStyle(
+                            foregroundColor: MaterialStateProperty.all(
+                              Colors.black
                             ),
-                            Container(
-                                child: Text(
-                                    '00',
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold
-                                    )
-                                )
+                            backgroundColor: MaterialStateProperty.all(
+                              Color.fromARGB(255, 215, 215, 215)
                             ),
-                            Container(
-                                child: Text(
-                                    '01',
-                                    style: TextStyle(
-                                        fontSize: 24
-                                    )
-                                )
+                            shape: MaterialStateProperty.all(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18.0)
+                              )
                             ),
-                            Container(
-                              child: Text(
-                                  '02',
-                                  style: TextStyle(
-                                      fontSize: 24
-                                  )
+                            fixedSize: MaterialStateProperty.all(
+                              Size(
+                                100.0,
+                                50.0
                               )
                             )
-                          ],
+                          )
                         ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                            Container(
-                              child: Text(
-                                  'мин.'
-                              ),
-                            ),
-                            Container(
-                                child: Text(
-                                    '00',
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold
-                                    )
-                                )
-                            ),
-                            Container(
-                                child: Text(
-                                    '01',
-                                    style: TextStyle(
-                                        fontSize: 24
-                                    )
-                                )
-                            ),
-                            Container(
-                                child: Text(
-                                    '02',
-                                    style: TextStyle(
-                                        fontSize: 24
-                                    )
-                                )
-                            )
-                          ],
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                            Container(
-                              child: Text(
-                                  'сек.'
-                              ),
-                            ),
-                            Container(
-                                child: Text(
-                                    '00',
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold
-                                    )
-                                )
-                            ),
-                            Container(
-                                child: Text(
-                                    '01',
-                                    style: TextStyle(
-                                        fontSize: 24
-                                    )
-                                )
-                            ),
-                            Container(
-                                child: Text(
-                                    '02',
-                                    style: TextStyle(
-                                        fontSize: 24
-                                    )
-                                )
-                            )
-                          ],
-                        )
-                      ],
-                    ),
-                    SingleChildScrollView(
-                      child: FutureBuilder(
-                          future: this.handler.retrieveCustomTimers(),
-                          builder: (BuildContext context, AsyncSnapshot<List<CustomTimer>> snapshot) {
-                            int snapshotsCount = 0;
-                            if (snapshot.data != null) {
-                              snapshotsCount = snapshot.data!.length;
-                              customTimers = [];
-                              for (int snapshotIndex = 0; snapshotIndex < snapshotsCount; snapshotIndex++) {
-                                addCustomTimer(snapshot.data!.elementAt(snapshotIndex));
-                              }
-                            }
-                            if (snapshot.hasData) {
-                              return Row(
-                                children: customTimers
-                              );
-                            } else {
-                              return Column(
-
-                              );
-                            }
-                          }
-                      )
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(
-                        top: 115,
-                        bottom: 0,
-                        left: 0,
-                        right: 0
-                      ),
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/started_timer');
-                        },
-                        style: ButtonStyle(
-                            textStyle: MaterialStateProperty.all(
-                                TextStyle(
+                        TextButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/main');
+                            },
+                            child: Text(
+                                'Пауза',
+                                style: TextStyle(
                                     fontSize: 18
                                 )
                             ),
-                            backgroundColor: MaterialStateProperty.all(Color.fromARGB(255, 0, 0, 225)),
-                            foregroundColor: MaterialStateProperty.all(Color.fromARGB(255, 255, 255, 255)),
-                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18.0),
-                                    side: BorderSide(
-                                        color: Colors.transparent)
-                                )
-                            ),
-                            fixedSize: MaterialStateProperty.all<Size>(
-                                Size(
-                                    100.0,
-                                    45.0
+                            style: ButtonStyle(
+                                foregroundColor: MaterialStateProperty.all(
+                                    Colors.white
+                                ),
+                                backgroundColor: MaterialStateProperty.all(
+                                    Colors.red
+                                ),
+                                shape: MaterialStateProperty.all(
+                                    RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18.0)
+                                    )
+                                ),
+                                fixedSize: MaterialStateProperty.all(
+                                    Size(
+                                        100.0,
+                                        50.0
+                                    )
                                 )
                             )
-                        ),
-                        child: Text(
-                          'Начать'
-                        ),
-                      )
+                        )
+                      ]
                     )
                   ]
-              ),
+                ),
               Column(
                 children: <Widget>[
                   TextButton(
@@ -1717,58 +2132,15 @@ class CustomTimer {
 
 class CityWeatherResponse {
 
-  /*final int coord;
-  final int weather;
-  final String base;
-  */
   final WeatherInfo main;
-  // final int visibility;
-  /*final String wind;
-  final int snow;
-  final int clouds;
-  final String dt;
-  final int sys;
-  final int timezone;
-  final String id;
-  final int name;
-  final int cod;*/
 
   const CityWeatherResponse({
-
-    /*required this.coord,
-    required this.weather,
-    required this.base,
-    */
-    required this.main,
-    // required this.visibility,
-    /*required this.wind,
-    required this.snow,
-    required this.clouds,
-    required this.dt,
-    required this.sys,
-    required this.timezone,
-    required this.id,
-    required this.name,
-    required this.cod*/
+    required this.main
   });
 
   factory CityWeatherResponse.fromJson(Map<String, dynamic> json) {
     return CityWeatherResponse(
-      /*coord: json['coord'],
-      weather: json['weather'],
-      base: json['base'],
-      */
       main: WeatherInfo.fromJson(json['main'] as Map<String, dynamic>)
-      // visibility: json['visibility'],
-      /*wind: json['wind'],
-      snow: json['snow'],
-      clouds: json['clouds'],
-      dt: json['dt'],
-      sys: json['sys'],
-      timezone: json['timezone'],
-      id: json['id'],
-      name: json['name'],
-      cod: json['cod']*/
     );
   }
 
@@ -1792,6 +2164,22 @@ class WeatherInfo {
     return {
       'temp': temp
     };
+  }
+
+}
+
+class CityWorldTimeResponse {
+
+  final String datetime;
+
+  const CityWorldTimeResponse({
+    required this.datetime
+  });
+
+  factory CityWorldTimeResponse.fromJson(Map<String, dynamic> json) {
+    return CityWorldTimeResponse(
+        datetime: json['datetime'] as String
+    );
   }
 
 }
