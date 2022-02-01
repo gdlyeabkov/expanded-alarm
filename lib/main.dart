@@ -13,6 +13,10 @@ import 'package:sqflite/sqflite.dart';
 // import 'package:appspector/appspector.dart';
 import 'package:sqlite_viewer/sqlite_viewer.dart';
 
+import 'package:intl/intl.dart';
+
+import 'package:http/http.dart' as http;
+
 /*void runAppSpector() {
   final config = Config()
     ..iosApiKey = "Your iOS API_KEY"
@@ -46,7 +50,8 @@ class MyApp extends StatelessWidget {
             title: 'Flutter Demo Home Page'
         ),
         '/add_alarm': (context) => AddAlarmPage(),
-        '/add_world_time': (context) => AddWorldTimePage()
+        '/add_world_time': (context) => AddWorldTimePage(),
+        '/started_timer': (context) => StartedTimerPage()
       },
       initialRoute: '/main',
     );
@@ -110,6 +115,30 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Object> havedWorldTimes = [];
   List<Widget> customTimers = [];
   List<Object> havedCustomTimers = [];
+  var weekDayLabels = <String, String>{
+    'Monday': 'пн',
+    'Tuesday': 'вт',
+    'Wednesday': 'ср',
+    'Thursday': 'чт',
+    'Friday': 'пт',
+    'Saturday': 'сб',
+    'Sunday': 'вс'
+  };
+
+  var monthsLabels = <int, String>{
+    0: 'янв.',
+    1: 'февр.',
+    2: 'мар.',
+    3: 'апр.',
+    4: 'мая',
+    5: 'июн.',
+    6: 'июл.',
+    7: 'авг.',
+    8: 'сен.',
+    9: 'окт.',
+    10: 'ноя.',
+    11: 'дек'
+  };
 
   @override
   void initState() {
@@ -128,6 +157,25 @@ class _MyHomePageState extends State<MyHomePage> {
   void addAlarm (Alarm alarm) {
     String alarmTime = alarm.time;
     String alarmDate = alarm.date;
+    String rawAlarmYear = alarm.date.split('/')[2];
+    String rawAlarmMonth = alarm.date.split('/')[1];
+    if (rawAlarmMonth.length == 1) {
+      rawAlarmMonth = '0${rawAlarmMonth}';
+    }
+    String rawAlarmDay = alarm.date.split('/')[0];
+    if (rawAlarmDay.length == 1) {
+      rawAlarmDay = '0${rawAlarmDay}';
+    }
+
+    DateTime parsedAlarmDate = DateTime.parse('${rawAlarmYear}-${rawAlarmMonth}-${rawAlarmDay}');
+    String weekDayKey = DateFormat('EEEE').format(parsedAlarmDate);
+    var rawWeekDayLabel = weekDayLabels[weekDayKey];
+    String weekDayLabel = rawWeekDayLabel.toString();
+    int alarmDay = parsedAlarmDate.day;
+    int monthLabelIndex = parsedAlarmDate.month;
+    var rawMonthLabel = monthsLabels[monthLabelIndex];
+    String monthLabel = rawMonthLabel.toString();
+    alarmDate = '${weekDayLabel}, ${alarmDay} ${monthLabel}';
     int rawAlarmIsEnabled = alarm.enabled;
     bool isAlarmEnabled = rawAlarmIsEnabled == 1;
     alarmTogglers.add(isAlarmEnabled);
@@ -135,7 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
     //setState(() {
       alarms.add(
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Container(
                   child: Text(
@@ -145,18 +193,28 @@ class _MyHomePageState extends State<MyHomePage> {
                       )
                   )
               ),
-              Container(
-                child: Text(
-                    alarmDate
-                ),
-              ),
-              Switch(
-                  value: alarmTogglers[alarmIndex],
-                  onChanged: (bool value) => {
-                    setState(() {
-                      alarmTogglers[alarmIndex] = value;
-                    })
-                  }
+              Row(
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(
+                      top: 0,
+                      bottom: 0,
+                      left: 25,
+                      right: 25
+                    ),
+                    child: Text(
+                        alarmDate
+                    ),
+                  ),
+                  Switch(
+                      value: alarmTogglers[alarmIndex],
+                      onChanged: (bool value) => {
+                        setState(() {
+                          alarmTogglers[alarmIndex] = value;
+                        })
+                      }
+                  )
+                ]
               )
             ],
           )
@@ -164,9 +222,24 @@ class _MyHomePageState extends State<MyHomePage> {
     // });
   }
 
+  Future<CityWeatherResponse> fetchCityWeather(String cityName) async {
+    final response = await http.get(Uri.parse('http://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=8ced8d3f02f94ff154bc4ddb60fa72a9&units=metric'));
+
+    if (response.statusCode == 200) {
+      // If the server did return a 200 OK response,
+      // then parse the JSON.
+      return CityWeatherResponse.fromJson(jsonDecode(response.body));
+    } else {
+      // If the server did not return a 200 OK response,
+      // then throw an exception.
+      throw Exception('Failed to load album');
+    }
+  }
+
   void addWorldTime (WorldTime worldTime) {
     // setState(() {
       String worldTimeCityName = worldTime.name;
+      Future<CityWeatherResponse> parsedWeather = fetchCityWeather(worldTimeCityName);
       worldTimes.add(
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -186,57 +259,91 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 )
             ),
-            Container(
-              child: Text(
-                  '15:26',
-                  style: TextStyle(
-                      fontSize: 24
-                  )
-              ),
-            ),
-            Column(
-              children: <Widget>[
-                Image.asset(
-                    'assets/weather.png',
-                    width: 25
+            Row(
+              children: [
+                Container(
+                  margin: EdgeInsets.only(
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 25
+                  ),
+                  child: Text(
+                      '15:26',
+                      style: TextStyle(
+                          fontSize: 24
+                      )
+                  ),
                 ),
-                Text(
-                    '2*'
+                Column(
+                  children: <Widget>[
+                    Image.asset(
+                        'assets/weather.png',
+                        width: 25
+                    ),
+                    FutureBuilder<CityWeatherResponse>(
+                      future: parsedWeather,
+                      builder: (context, snapshot) {
+                        bool isHasData = snapshot.hasData;
+                        var snapshotData = snapshot.data!;
+                        WeatherInfo weatherInfo = snapshotData.main;
+                        double parsedTemp = weatherInfo.temp;
+                        int roundedParsedTemp = parsedTemp.toInt();
+                        String rawTemp = roundedParsedTemp.toString();
+                        String rawTempInDegresses = '${rawTemp}°';
+                        if (isHasData) {
+                          return Row(
+                            children: [
+                              Text(
+                                  rawTempInDegresses
+                              )
+                            ]
+                          );
+                        } else {
+                          return Text(
+                              'Неизвестно'
+                          );
+                        }
+                      }
+                    )
+                  ],
                 )
-              ],
+              ]
             )
-          ],
+          ]
         )
       );
     // });
   }
 
-  void addCustomTimer() {
-    customTimers.add(
-        GestureDetector(
-          onTap: () {
+  void addCustomTimer(CustomTimer customTimer) {
+    // setState(() {
+      customTimers.add(
+          GestureDetector(
+              onTap: () {
 
-          },
-          child: Container(
-              alignment: Alignment.center,
-              height: 100.0,
-              width: 100.0,
-              margin: EdgeInsets.only(
-                  top: 50,
-                  bottom: 50,
-                  left: 15,
-                  right: 15
-              ),
-              decoration: BoxDecoration(
-                color: Color.fromARGB(255, 200, 200, 200),
-                borderRadius: BorderRadius.circular(45),
-              ),
-              child: Text(
-                  "00:00:00"
+              },
+              child: Container(
+                  alignment: Alignment.center,
+                  height: 100.0,
+                  width: 100.0,
+                  margin: EdgeInsets.only(
+                      top: 50,
+                      bottom: 50,
+                      left: 15,
+                      right: 15
+                  ),
+                  decoration: BoxDecoration(
+                    color: Color.fromARGB(255, 200, 200, 200),
+                    borderRadius: BorderRadius.circular(45),
+                  ),
+                  child: Text(
+                      "00:00:00"
+                  )
               )
           )
-        )
-    );
+      );
+    // });
   }
 
   @override
@@ -246,8 +353,18 @@ class _MyHomePageState extends State<MyHomePage> {
       addWorldTime();
     });*/
 
+    Future<int> addNewCustomTimer(String hours, String minutes, String seconds) async {
+      CustomTimer customTimer = CustomTimer(
+          hours: hours,
+          minutes: minutes,
+          seconds: seconds
+      );
+      List<CustomTimer> customTimers = [customTimer];
+      return await this.handler.insertCustomTimer(customTimers);
+    }
+
     return DefaultTabController(
-        initialIndex: 1,
+        initialIndex: 0,
         length: 5,
         child: Scaffold(
           appBar: AppBar(
@@ -258,7 +375,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   text: 'Будильник'
                 ),
                 Tab(
-                    text: 'Мировое время'
+                  text: 'Мировое время'
                 ),
                 Tab(
                     text: 'Секундомер'
@@ -267,7 +384,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     text: 'Таймер'
                 ),
                 Tab(
-                    text: 'Запущенный таймер'
+                    text: 'Database inspector'
                 )
               ],
             ),
@@ -677,7 +794,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ),
                                     TextButton(
                                       onPressed: () {
-                                        addCustomTimer();
+                                        // addCustomTimer();
+                                        addNewCustomTimer('00', '00', '00');
                                         return Navigator.pop(context, 'OK');
                                       },
                                       child: const Text('Добавить')
@@ -820,8 +938,27 @@ class _MyHomePageState extends State<MyHomePage> {
                       ],
                     ),
                     SingleChildScrollView(
-                      child: Row(
-                        children: customTimers,
+                      child: FutureBuilder(
+                          future: this.handler.retrieveCustomTimers(),
+                          builder: (BuildContext context, AsyncSnapshot<List<CustomTimer>> snapshot) {
+                            int snapshotsCount = 0;
+                            if (snapshot.data != null) {
+                              snapshotsCount = snapshot.data!.length;
+                              customTimers = [];
+                              for (int snapshotIndex = 0; snapshotIndex < snapshotsCount; snapshotIndex++) {
+                                addCustomTimer(snapshot.data!.elementAt(snapshotIndex));
+                              }
+                            }
+                            if (snapshot.hasData) {
+                              return Row(
+                                children: customTimers
+                              );
+                            } else {
+                              return Column(
+
+                              );
+                            }
+                          }
                       )
                     ),
                     Container(
@@ -833,7 +970,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       child: TextButton(
                         onPressed: () {
-
+                          Navigator.pushNamed(context, '/started_timer');
                         },
                         style: ButtonStyle(
                             textStyle: MaterialStateProperty.all(
@@ -866,12 +1003,9 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Column(
                 children: <Widget>[
-                  Text(
-                    'Запущенный таймер'
-                  ),
                   TextButton(
                     child: Text(
-                      'DB'
+                      'Database inspector'
                     ),
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => DatabaseList()));
@@ -1352,6 +1486,49 @@ class _AddWorldTimePageState extends State<AddWorldTimePage> {
 
 }
 
+class StartedTimerPage extends StatefulWidget {
+
+  const StartedTimerPage({Key? key}) : super(key: key);
+
+  @override
+  State<StartedTimerPage> createState() => _StartedTimerPageState();
+
+}
+
+class _StartedTimerPageState extends State<StartedTimerPage> {
+
+  late DatabaseHandler handler;
+
+  @override
+  void initState() {
+    super.initState();
+    this.handler = DatabaseHandler();
+    this.handler.initializeDB().whenComplete(() async {
+      setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return (
+        Scaffold(
+            appBar: AppBar(
+                title: Text(
+                    'Запущенный таймер'
+                )
+            ),
+            body: Column(
+                children: <Widget>[
+
+                ]
+            )
+        )
+    );
+
+  }
+
+}
+
 class Alarm {
 
   final int? id;
@@ -1399,6 +1576,9 @@ class DatabaseHandler {
         await database.execute(
             "CREATE TABLE worldtimes(id INTEGER PRIMARY KEY, name TEXT)"
         );
+        await database.execute(
+            "CREATE TABLE timers(id INTEGER PRIMARY KEY, hours TEXT, minutes TEXT, seconds TEXT)"
+        );
       },
       onOpen: (database) async {
         /*await database.execute(
@@ -1406,6 +1586,9 @@ class DatabaseHandler {
         );
         await database.execute(
             "CREATE TABLE worldtimes(id INTEGER PRIMARY KEY, name TEXT);"
+        );
+        await database.execute(
+            "CREATE TABLE timers(id INTEGER PRIMARY KEY, hours TEXT, minutes TEXT, seconds TEXT)"
         );*/
       },
       version: 1,
@@ -1462,6 +1645,22 @@ class DatabaseHandler {
     return returnedWorldTimes;
   }
 
+  Future<int> insertCustomTimer(List<CustomTimer> customTimers) async {
+    int result = 0;
+    final Database db = await initializeDB();
+    for(var customTimer in customTimers){
+      result = await db.insert('timers', customTimer.toMap());
+    }
+    return result;
+  }
+
+  Future<List<CustomTimer>> retrieveCustomTimers() async {
+    final Database db = await initializeDB();
+    final List<Map<String, Object?>> queryResult = await db.query('timers');
+    var returnedCustomTimers = queryResult.map((e) => CustomTimer.fromMap(e)).toList();
+    return returnedCustomTimers;
+  }
+
 }
 
 class WorldTime {
@@ -1484,4 +1683,115 @@ class WorldTime {
   WorldTime.fromMap(Map<String, dynamic> res)
     : id = res["id"],
       name = res["name"];
+}
+
+class CustomTimer {
+
+  final int? id;
+  final String hours;
+  final String minutes;
+  final String seconds;
+
+  CustomTimer({
+    this.id,
+    required this.hours,
+    required this.minutes,
+    required this.seconds
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'hours': hours,
+      'minutes': minutes,
+      'seconds': seconds
+    };
+  }
+
+  CustomTimer.fromMap(Map<String, dynamic> res)
+    : id = res["id"],
+      hours = res["hours"],
+      minutes = res["minutes"],
+      seconds = res["seconds"];
+}
+
+class CityWeatherResponse {
+
+  /*final int coord;
+  final int weather;
+  final String base;
+  */
+  final WeatherInfo main;
+  // final int visibility;
+  /*final String wind;
+  final int snow;
+  final int clouds;
+  final String dt;
+  final int sys;
+  final int timezone;
+  final String id;
+  final int name;
+  final int cod;*/
+
+  const CityWeatherResponse({
+
+    /*required this.coord,
+    required this.weather,
+    required this.base,
+    */
+    required this.main,
+    // required this.visibility,
+    /*required this.wind,
+    required this.snow,
+    required this.clouds,
+    required this.dt,
+    required this.sys,
+    required this.timezone,
+    required this.id,
+    required this.name,
+    required this.cod*/
+  });
+
+  factory CityWeatherResponse.fromJson(Map<String, dynamic> json) {
+    return CityWeatherResponse(
+      /*coord: json['coord'],
+      weather: json['weather'],
+      base: json['base'],
+      */
+      main: WeatherInfo.fromJson(json['main'] as Map<String, dynamic>)
+      // visibility: json['visibility'],
+      /*wind: json['wind'],
+      snow: json['snow'],
+      clouds: json['clouds'],
+      dt: json['dt'],
+      sys: json['sys'],
+      timezone: json['timezone'],
+      id: json['id'],
+      name: json['name'],
+      cod: json['cod']*/
+    );
+  }
+
+}
+
+class WeatherInfo {
+
+  WeatherInfo({
+    required this.temp
+  });
+
+  // non-nullable - assuming the score field is always present
+  final double temp;
+
+  factory WeatherInfo.fromJson(Map<String, dynamic> data) {
+    final temp = data['temp'] as double;
+    return WeatherInfo(temp: temp);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'temp': temp
+    };
+  }
+
 }
