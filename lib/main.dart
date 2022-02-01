@@ -611,8 +611,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             }
                           }
                           if (snapshot.hasData) {
-                            return Column(
-                                children: alarms
+                            return Container(
+                                height: 250,
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                      children: alarms
+                                  )
+                                )
                             );
                           } else {
                             return Column(
@@ -692,8 +697,13 @@ class _MyHomePageState extends State<MyHomePage> {
                               }
                             }
                             if (snapshot.hasData) {
-                              return Column(
-                                  children: worldTimes
+                              return Container(
+                                height: 200,
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: worldTimes
+                                  )
+                                )
                               );
                             } else {
                               return Column(
@@ -759,8 +769,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         Divider(
                           thickness: 1.0
                         ),
-                        Column(
-                          children: intervals
+                        Container(
+                          height: 150,
+                          child: SingleChildScrollView(
+                            child: Column(
+                                children: intervals
+                            )
+                          )
                         )
                       ]
                     )
@@ -768,7 +783,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Column(),
                   Container(
                     margin: EdgeInsets.only(
-                      top: 250,
+                      top: 175,
                       bottom: 50,
                       left: 0,
                       right: 0
@@ -1159,8 +1174,13 @@ class _MyHomePageState extends State<MyHomePage> {
                                 }
                               }
                               if (snapshot.hasData) {
-                                return Row(
-                                  children: customTimers
+                                return Container(
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: customTimers
+                                    )
+                                  )
                                 );
                               } else {
                                 return Column(
