@@ -17,6 +17,8 @@ import 'package:intl/intl.dart';
 
 import 'package:http/http.dart' as http;
 
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
+
 /*void runAppSpector() {
   final config = Config()
     ..iosApiKey = "Your iOS API_KEY"
@@ -2966,6 +2968,11 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
   late DatabaseHandler handler;
   String newAlarmDate = '22/11/2000';
   String alarmSignalName = '';
+  ScrollController addAlarmTimeHoursController = ScrollController();
+  ScrollController addAlarmTimeMinutesController = ScrollController();
+  String newAlarmTime = '17:00';
+  late Column newAlarmTimeHoursColumn;
+  late Column newAlarmTimeMinutesColumn;
 
   Future<void> setAlarmDate(BuildContext context) async {
     setState(() async {
@@ -3004,6 +3011,630 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
     this.handler.initializeDB().whenComplete(() async {
       setState(() {});
     });
+
+    newAlarmTimeHoursColumn = Column(
+        children: [
+          Text(
+              '00',
+              style: TextStyle(
+                  fontSize: 48
+              )
+          ),
+          Text(
+              '01',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '02',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '03',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '04',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '05',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '06',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '07',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '08',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '09',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '10',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '11',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '12',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '13',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '14',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '15',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '16',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '17',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '18',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '19',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '20',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '21',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '22',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '23',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          )
+        ]
+    );
+
+    newAlarmTimeMinutesColumn = Column(
+        children: [
+          Text(
+              '00',
+              style: TextStyle(
+                  fontSize: 48
+              )
+          ),
+          Text(
+              '01',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '02',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '03',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '04',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '05',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '06',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '07',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '08',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '09',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '10',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '11',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '12',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '13',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '14',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '15',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '16',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '17',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '18',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '19',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '20',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '21',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '22',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '23',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '24',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '25',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '26',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '27',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '28',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '29',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '30',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '31',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '32',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '33',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '34',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '35',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '36',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '37',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '38',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '39',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '40',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '41',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '42',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '43',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '44',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '45',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '46',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '47',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '48',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '49',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '50',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '51',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '52',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '53',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '54',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '55',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '56',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '57',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '58',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+          Text(
+              '59',
+              style: TextStyle(
+                  fontSize: 48,
+                  color: Color.fromARGB(255, 200, 200, 200)
+              )
+          ),
+        ]
+    );
+
+    addAlarmTimeHoursController.addListener(() {
+      double offsetTop = addAlarmTimeHoursController.position.pixels;
+      double correctOffsetTop = offsetTop / 25;
+      int possibleOffsetTop = correctOffsetTop.toInt();
+      print('addAlarmTimeHoursController offsetTop: ${possibleOffsetTop}');
+      Text currentHoursLabel = newAlarmTimeHoursColumn.children[possibleOffsetTop] as Text;
+      List<String> newAlarmTimeParts = newAlarmTime.split(':');
+      String newAlarmTimeMinutes = newAlarmTimeParts[1];
+      setState(() {
+        newAlarmTime = '${currentHoursLabel.data}:${newAlarmTimeMinutes}';
+      });;
+    });
+
+    addAlarmTimeMinutesController.addListener(() {
+      double offsetTop = addAlarmTimeHoursController.position.pixels;
+      double correctOffsetTop = offsetTop / 27;
+      int possibleOffsetTop = correctOffsetTop.toInt();
+      print('addAlarmTimeMinutesController offsetTop: ${possibleOffsetTop}');
+      Text currentMinutesLabel = newAlarmTimeHoursColumn.children[possibleOffsetTop] as Text;
+      List<String> newAlarmTimeParts = newAlarmTime.split(':');
+      String newAlarmTimeHours = newAlarmTimeParts[0];
+
+      setState(() {
+        newAlarmTime = '${newAlarmTimeHours}:${currentMinutesLabel.data}';
+      });
+    });
+
   }
 
   Future<int> addNewAlarm(String time, String date, int enabled, String name) async {
@@ -3029,29 +3660,12 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
-                      Column(
-                        children: [
-                          Text(
-                            '00',
-                            style: TextStyle(
-                              fontSize: 48
-                            )
-                          ),
-                          Text(
-                              '01',
-                              style: TextStyle(
-                                  fontSize: 48,
-                                  color: Color.fromARGB(255, 200, 200, 200)
-                              )
-                          ),
-                          Text(
-                              '02',
-                              style: TextStyle(
-                                  fontSize: 48,
-                                  color: Color.fromARGB(255, 200, 200, 200)
-                              )
-                          )
-                        ]
+                      Container(
+                        height: 175,
+                        child: SingleChildScrollView(
+                          controller: addAlarmTimeHoursController,
+                          child: newAlarmTimeHoursColumn
+                        )
                       ),
                       Text(
                         ':',
@@ -3059,29 +3673,12 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                             fontSize: 48
                         )
                       ),
-                      Column(
-                        children: [
-                          Text(
-                            '00',
-                              style: TextStyle(
-                                  fontSize: 48
-                              )
-                          ),
-                          Text(
-                              '01',
-                              style: TextStyle(
-                                  fontSize: 48,
-                                  color: Color.fromARGB(255, 200, 200, 200)
-                              )
-                          ),
-                          Text(
-                              '02',
-                              style: TextStyle(
-                                fontSize: 48,
-                                color: Color.fromARGB(255, 200, 200, 200)
-                              )
-                          )
-                        ]
+                      Container(
+                        height: 175,
+                        child: SingleChildScrollView(
+                          controller: addAlarmTimeMinutesController,
+                          child: newAlarmTimeMinutesColumn
+                        )
                       )
                     ]
                   ),
@@ -3212,10 +3809,21 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                     children: [
                       Column(
                         children: [
-                          Text(
-                           'Звук будильника',
-                            style: TextStyle(
-                              fontSize: 18
+                          TextButton(
+                            onPressed: () {
+                              FlutterRingtonePlayer.play(
+                                android: AndroidSounds.alarm,
+                                ios: IosSounds.glass,
+                                looping: true, // Android only - API >= 28
+                                volume: 1, // Android only - API >= 28
+                                asAlarm: false, // Android only - all APIs
+                              );
+                            },
+                            child: Text(
+                              'Звук будильника',
+                              style: TextStyle(
+                                  fontSize: 18
+                              )
                             )
                           ),
                           Text(
@@ -3318,7 +3926,7 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                 ),
                 TextButton(
                     onPressed: () async {
-                      await this.addNewAlarm('17:00', newAlarmDate, 1, alarmSignalName);
+                      await this.addNewAlarm(newAlarmTime, newAlarmDate, 1, alarmSignalName);
                       Navigator.pushNamed(context, '/main');
                     },
                     child: Text(
