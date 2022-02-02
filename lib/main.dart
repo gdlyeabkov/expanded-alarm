@@ -152,6 +152,165 @@ class _MyHomePageState extends State<MyHomePage> {
   int circleHours = 0;
   int circleMinutes = 0;
   int circleSeconds = 0;
+  ScrollController timerHoursController = ScrollController();
+  List<double> hoursLabelsStyles = [
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24
+  ];
+  late Column timerHoursColumn;
+  ScrollController timerMinutesController = ScrollController();
+  List<double> minutesLabelsStyles = [
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24
+  ];
+  late Column timerMinutesColumn;
+  ScrollController timerSecondsController = ScrollController();
+  List<double> secondsLabelsStyles = [
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24,
+    24
+  ];
+  late Column timerSecondsColumn;
+  String newCustomTimerHours = '00';
+  String newCustomTimerMinutes = '00';
+  String newCustomTimerSeconds = '00';
 
   @override
   void initState() {
@@ -164,6 +323,1233 @@ class _MyHomePageState extends State<MyHomePage> {
         stopWatchStartBtnTitle = stopWatchStartBtnStartLabel;
       });
     });
+
+    timerHoursColumn = Column(
+        children: <Widget>[
+          Container(
+              child: Text(
+                  '00',
+                  style: TextStyle(
+                    fontSize: hoursLabelsStyles[0]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '01',
+                  style: TextStyle(
+                    fontSize: hoursLabelsStyles[1]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                '02',
+                style: TextStyle(
+                    fontSize: hoursLabelsStyles[2]
+                )
+              )
+          ),
+          Container(
+              child: Text(
+                  '03',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[3]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '04',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[4]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '05',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[5]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '06',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[6]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '07',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[7]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '08',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[8]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '09',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[9]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '10',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[10]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '11',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[11]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '12',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[12]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '13',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[13]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '14',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[14]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '15',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[15]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '16',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[16]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '17',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[17]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '18',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[18]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '19',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[19]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '20',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[20]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '21',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[21]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '22',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[22]
+                  )
+              )
+          ),
+          Container(
+              child: Text(
+                  '23',
+                  style: TextStyle(
+                      fontSize: hoursLabelsStyles[23]
+                  )
+              )
+          )
+        ]
+    );
+
+    timerHoursController.addListener(() {
+      double offsetTop = timerHoursController.position.pixels;
+      double correctOffsetTop = offsetTop / 15;
+      List<Widget> hoursLabels = timerHoursColumn.children;
+      int possibleOffsetTop = correctOffsetTop.toInt();
+      String rawPossibleOffsetTop = possibleOffsetTop.toString();
+      print('debug: ${rawPossibleOffsetTop}');
+      setState(() {
+        this.hoursLabelsStyles[possibleOffsetTop] = 24;
+        newCustomTimerHours = ((hoursLabels[possibleOffsetTop] as Container).child as Text).data.toString();
+      });
+    });
+
+    timerMinutesColumn = Column(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        Container(
+            child: Text(
+                '00',
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '01',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '02',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '03',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '04',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '05',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '06',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '07',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '08',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '09',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '10',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '11',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '12',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '13',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '14',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '15',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '16',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '17',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '18',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '19',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '20',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '21',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '22',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '23',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '24',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '25',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '26',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '27',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '28',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '29',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '30',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '31',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '32',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '33',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '34',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '35',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '36',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '37',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '38',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '39',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '40',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '41',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '42',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '43',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '44',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '45',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '46',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '47',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '48',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '49',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '50',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '51',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '52',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '53',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '54',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '55',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '56',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '57',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '02',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '58',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '59',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        )
+      ],
+    );
+
+    timerMinutesController.addListener(() {
+      double offsetTop = timerMinutesController.position.pixels;
+      double correctOffsetTop = offsetTop / 15;
+      List<Widget> minutesLabels = timerMinutesColumn.children;
+      int possibleOffsetTop = correctOffsetTop.toInt();
+      String rawPossibleOffsetTop = possibleOffsetTop.toString();
+      print('debug: ${rawPossibleOffsetTop}');
+      setState(() {
+        this.minutesLabelsStyles[possibleOffsetTop] = 24;
+        newCustomTimerMinutes = ((minutesLabels[possibleOffsetTop] as Container).child as Text).data.toString();
+      });
+    });
+
+    timerSecondsColumn = Column(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        Container(
+            child: Text(
+                '00',
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '01',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '02',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '03',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '04',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '05',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '06',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '07',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '08',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '09',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '10',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '11',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '12',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '13',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '14',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '15',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '16',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '17',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '18',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '19',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '20',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '21',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '22',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '23',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '24',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '25',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '26',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '27',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '28',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '29',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '30',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '31',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '32',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '33',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '34',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '35',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '36',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '37',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '38',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '39',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '40',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '41',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '42',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '43',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '44',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '45',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '46',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '47',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '48',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '49',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '50',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '51',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '52',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '53',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '54',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '55',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '56',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '57',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '02',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '58',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        ),
+        Container(
+            child: Text(
+                '59',
+                style: TextStyle(
+                    fontSize: 24
+                )
+            )
+        )
+      ],
+    );
+
+    timerSecondsController.addListener(() {
+      double offsetTop = timerSecondsController.position.pixels;
+      double correctOffsetTop = offsetTop / 15;
+      List<Widget> secondsLabels = timerSecondsColumn.children;
+      int possibleOffsetTop = correctOffsetTop.toInt();
+      String rawPossibleOffsetTop = possibleOffsetTop.toString();
+      print('debug: ${rawPossibleOffsetTop}');
+      setState(() {
+        this.secondsLabelsStyles[possibleOffsetTop] = 24;
+        newCustomTimerSeconds = ((secondsLabels[possibleOffsetTop] as Container).child as Text).data.toString();
+      });
+    });
+
   }
 
   Future<void> deleteAlarms() async {
@@ -372,7 +1758,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void addCustomTimer(CustomTimer customTimer) {
     // setState(() {
-      customTimers.add(
+        String customTimerHours = customTimer.hours;
+        String customTimerMinutes = customTimer.minutes;
+        String customTimerSeconds = customTimer.seconds;
+        String customTimerTime = '${customTimerHours}:${customTimerMinutes}:${customTimerSeconds}';
+        customTimers.add(
           GestureDetector(
               onTap: () {
 
@@ -392,7 +1782,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     borderRadius: BorderRadius.circular(45),
                   ),
                   child: Text(
-                      "00:00:00"
+                    customTimerTime
                   )
               )
           )
@@ -969,7 +2359,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                         children: <Widget>[
                                           Container(
                                             child: TextField(
-
+                                                decoration: new InputDecoration.collapsed(
+                                                    hintText: '${newCustomTimerHours}:${newCustomTimerMinutes}:${newCustomTimerSeconds}',
+                                                    border: OutlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            width: 1.0
+                                                        )
+                                                    )
+                                                ),
+                                                controller: TextEditingController()..text = '${newCustomTimerHours}:${newCustomTimerMinutes}:${newCustomTimerSeconds}'
                                             ),
                                             padding: EdgeInsets.only(
                                                 top: 25,
@@ -1019,7 +2417,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       TextButton(
                                         onPressed: () {
                                           // addCustomTimer();
-                                          addNewCustomTimer('00', '00', '00');
+                                          addNewCustomTimer(newCustomTimerHours, '00', '00');
                                           return Navigator.pop(context, 'OK');
                                         },
                                         child: const Text('Добавить')
@@ -1055,109 +2453,46 @@ class _MyHomePageState extends State<MyHomePage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: <Widget>[
-                          Column(
-                            children: <Widget>[
-                              Container(
-                                child: Text(
-                                    'ч.'
-                                ),
-                              ),
-                              Container(
-                                  child: Text(
-                                      '00',
-                                      style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold
-                                      )
-                                  )
-                              ),
-                              Container(
-                                  child: Text(
-                                      '01',
-                                      style: TextStyle(
-                                          fontSize: 24
-                                      )
-                                  )
-                              ),
-                              Container(
-                                child: Text(
-                                    '02',
-                                    style: TextStyle(
-                                        fontSize: 24
-                                    )
-                                )
-                              )
-                            ],
+                          Container(
+                            child: Text(
+                                'ч.'
+                            ),
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: <Widget>[
-                              Container(
-                                child: Text(
-                                    'мин.'
-                                ),
-                              ),
-                              Container(
-                                  child: Text(
-                                      '00',
-                                      style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold
-                                      )
-                                  )
-                              ),
-                              Container(
-                                  child: Text(
-                                      '01',
-                                      style: TextStyle(
-                                          fontSize: 24
-                                      )
-                                  )
-                              ),
-                              Container(
-                                  child: Text(
-                                      '02',
-                                      style: TextStyle(
-                                          fontSize: 24
-                                      )
-                                  )
-                              )
-                            ],
+                          Container(
+                            child: Text(
+                                'мин.'
+                            ),
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: <Widget>[
-                              Container(
-                                child: Text(
-                                    'сек.'
-                                ),
-                              ),
-                              Container(
-                                  child: Text(
-                                      '00',
-                                      style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold
-                                      )
-                                  )
-                              ),
-                              Container(
-                                  child: Text(
-                                      '01',
-                                      style: TextStyle(
-                                          fontSize: 24
-                                      )
-                                  )
-                              ),
-                              Container(
-                                  child: Text(
-                                      '02',
-                                      style: TextStyle(
-                                          fontSize: 24
-                                      )
-                                  )
+                          Container(
+                            child: Text(
+                                'сек.'
+                            ),
+                          )
+                        ]
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          Container(
+                            height: 100,
+                            child: SingleChildScrollView(
+                              controller: timerHoursController,
+                              child: timerHoursColumn
+                            )
+                          ),
+                          Container(
+                              height: 100,
+                              child: SingleChildScrollView(
+                                  controller: timerMinutesController,
+                                  child: timerMinutesColumn
                               )
-                            ],
+                          ),
+                          Container(
+                              height: 100,
+                              child: SingleChildScrollView(
+                                controller: timerSecondsController,
+                                child: timerSecondsColumn
+                              )
                           )
                         ],
                       ),
@@ -1313,7 +2648,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     TextButton(
                                         onPressed: () {
                                           // addCustomTimer();
-                                          addNewCustomTimer('00', '00', '00');
+                                          addNewCustomTimer(newCustomTimerHours, newCustomTimerMinutes, newCustomTimerSeconds);
                                           return Navigator.pop(context, 'OK');
                                         },
                                         child: const Text('Добавить')
