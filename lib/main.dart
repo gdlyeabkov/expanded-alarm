@@ -311,6 +311,16 @@ class _MyHomePageState extends State<MyHomePage> {
   String newCustomTimerHours = '00';
   String newCustomTimerMinutes = '00';
   String newCustomTimerSeconds = '00';
+  String newCustomTimerName = '';
+  int customActiveTimer = -1;
+  String startTimerTitle = '00:00:00';
+  late Timer startedTimer;
+  int startedTimerSeconds = 0;
+  int startedTimerMinutes = 0;
+  int startedTimerHours = 0;
+  String startedTimerPauseLabel = 'Пауза';
+  String startedTimerResumeLabel = 'Продолж.';
+  String startedTimerPauseBtnContent = 'Пауза';
 
   @override
   void initState() {
@@ -1004,14 +1014,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         Container(
             child: Text(
-                '02',
-                style: TextStyle(
-                    fontSize: 24
-                )
-            )
-        ),
-        Container(
-            child: Text(
                 '58',
                 style: TextStyle(
                     fontSize: 24
@@ -1512,14 +1514,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         Container(
             child: Text(
-                '02',
-                style: TextStyle(
-                    fontSize: 24
-                )
-            )
-        ),
-        Container(
-            child: Text(
                 '58',
                 style: TextStyle(
                     fontSize: 24
@@ -1582,6 +1576,9 @@ class _MyHomePageState extends State<MyHomePage> {
     bool isAlarmEnabled = rawAlarmIsEnabled == 1;
     alarmTogglers.add(isAlarmEnabled);
     int alarmIndex = alarms.length;
+    // setState(() {
+      // alarmTogglers[alarmIndex] = isAlarmEnabled;
+    // });
     //setState(() {
       alarms.add(
           Row(
@@ -1613,6 +1610,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       onChanged: (bool value) => {
                         setState(() {
                           alarmTogglers[alarmIndex] = value;
+                          Map<String, Object> parsedAlarm = alarm.toMap() as Map<String, Object>;
+                          handler.updateIsEnabledAlarm(parsedAlarm);
                         })
                       }
                   )
@@ -1757,37 +1756,88 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void addCustomTimer(CustomTimer customTimer) {
-    // setState(() {
-        String customTimerHours = customTimer.hours;
-        String customTimerMinutes = customTimer.minutes;
-        String customTimerSeconds = customTimer.seconds;
-        String customTimerTime = '${customTimerHours}:${customTimerMinutes}:${customTimerSeconds}';
-        customTimers.add(
-          GestureDetector(
-              onTap: () {
-
-              },
-              child: Container(
-                  alignment: Alignment.center,
-                  height: 100.0,
-                  width: 100.0,
-                  margin: EdgeInsets.only(
-                      top: 50,
-                      bottom: 50,
-                      left: 15,
-                      right: 15
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 200, 200, 200),
-                    borderRadius: BorderRadius.circular(45),
-                  ),
-                  child: Text(
-                    customTimerTime
+    String customTimerHours = customTimer.hours;
+    String customTimerMinutes = customTimer.minutes;
+    String customTimerSeconds = customTimer.seconds;
+    String customTimerTime = '${customTimerHours}:${customTimerMinutes}:${customTimerSeconds}';
+    String customTimerLabel = customTimerTime;
+    String customTimerName = customTimer.name;
+    bool isNameSet = customTimerName.length >= 1;
+    if (isNameSet) {
+      customTimerLabel = '${customTimerName}\n${customTimerTime}';
+    }
+    int customTimerIndex = customTimers.length;
+    bool isApplyCustomTimer = customTimerTime == '${newCustomTimerHours}:${newCustomTimerMinutes}:${newCustomTimerSeconds}';
+    Widget currentCustomTimer = GestureDetector(
+      onTap: () {
+        print('Выбираю customtimer');
+        setState(() {
+          customActiveTimer = customTimerIndex;
+        });
+        double rawCustomTimerHours = double.parse(customTimerHours);
+        double hoursLabelRatio = 25;
+        double scrollHoursValue = rawCustomTimerHours * hoursLabelRatio;
+        timerHoursController.animateTo(
+          scrollHoursValue,
+          duration: Duration(
+            seconds: 2
+          ),
+          curve: Curves.ease
+        );
+        double rawCustomTimerMinutes = double.parse(customTimerMinutes);
+        double minutesLabelRatio = 27;
+        double scrollMinutesValue = rawCustomTimerMinutes * minutesLabelRatio;
+        timerMinutesController.animateTo(
+          scrollMinutesValue,
+          duration: Duration(
+              seconds: 2
+          ),
+          curve: Curves.ease
+        );
+        double rawCustomTimerSeconds = double.parse(customTimerSeconds);
+        double secondsLabelRatio = 27;
+        double scrollSecondsValue = rawCustomTimerSeconds * secondsLabelRatio;
+        timerSecondsController.animateTo(
+            scrollSecondsValue,
+            duration: Duration(
+                seconds: 2
+            ),
+            curve: Curves.ease
+        );
+      },
+      child: Container(
+          alignment: Alignment.center,
+          height: 100.0,
+          width: 100.0,
+          margin: EdgeInsets.only(
+              top: 50,
+              bottom: 50,
+              left: 15,
+              right: 15
+          ),
+          decoration: BoxDecoration(
+              color: customTimerIndex == customActiveTimer ? Colors.transparent : Color.fromARGB(255, 200, 200, 200),
+              borderRadius: BorderRadius.circular(45),
+              border: customTimerIndex == customActiveTimer ? Border.fromBorderSide(
+                  BorderSide(
+                    color: Color.fromARGB(255, 200, 150, 255),
+                    width: 3.0
                   )
-              )
+                )
+              :
+                Border.fromBorderSide(
+                  BorderSide(
+                    color: Colors.transparent
+                  )
+                )
+          ),
+          child: Text(
+              customTimerLabel,
+              textAlign: TextAlign.center
           )
-      );
-    // });
+      )
+    );
+    customTimers.insert(0, currentCustomTimer);
   }
 
   void addInterval() {
@@ -1890,6 +1940,73 @@ class _MyHomePageState extends State<MyHomePage> {
 
   }
 
+  void runStartedTimer() {
+    setState(() {
+      isStartTimer = true;
+      // здесь
+      startedTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          bool isSecondsLeft = startedTimerSeconds >= 1;
+          if (isSecondsLeft) {
+            startedTimerSeconds--;
+          } else {
+            startedTimer.cancel();
+            isStartTimer = false;
+          }
+        });
+        bool isToggleSecond = startedTimerSeconds == 0;
+        if (isToggleSecond) {
+          setState(() {
+            bool isMinutesLeft = startedTimerMinutes >= 1;
+            if (isMinutesLeft) {
+              startedTimerSeconds = 59;
+              startedTimerMinutes--;
+            }
+          });
+          bool isToggleHour = startedTimerMinutes == 0;
+          if (isToggleHour) {
+            setState(() {
+              bool isHoursLeft = startedTimerHours >= 1;
+              if (isHoursLeft) {
+                startedTimerMinutes = 59;
+                startedTimerHours--;
+              }
+            });
+          }
+        }
+        String updatedHoursText = '${startedTimerHours}';
+        int countHoursChars = updatedHoursText.length;
+        bool isAddHoursPrefix = countHoursChars == 1;
+        if (isAddHoursPrefix) {
+          updatedHoursText = oneCharPrefix + updatedHoursText;
+        }
+        String updatedMinutesText = '${startedTimerMinutes}';
+        int countMinutesChars = updatedMinutesText.length;
+        bool isAddMinutesPrefix = countMinutesChars == 1;
+        if (isAddMinutesPrefix) {
+          updatedMinutesText = oneCharPrefix + updatedMinutesText;
+        }
+        String updatedSecondsText = '${startedTimerSeconds}';
+        int countSecondsChars = updatedSecondsText.length;
+        bool isAddSecondsPrefix = countSecondsChars == 1;
+        if (isAddSecondsPrefix) {
+          updatedSecondsText = oneCharPrefix + updatedSecondsText;
+        }
+        String currentTime = updatedHoursText + ":" + updatedMinutesText + ":" + updatedSecondsText;
+        startTimerTitle = currentTime;
+
+        // bool isTimeOver = startedTimerSeconds == 0 && startedTimerMinutes == 0 && startedTimerSeconds == 0;
+        bool isTimeOver = startedTimerSeconds == -1;
+        if (isTimeOver) {
+          startedTimer.cancel();
+          isStartTimer = false;
+        }
+
+      });
+
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -1897,11 +2014,12 @@ class _MyHomePageState extends State<MyHomePage> {
       addWorldTime();
     });*/
 
-    Future<int> addNewCustomTimer(String hours, String minutes, String seconds) async {
+    Future<int> addNewCustomTimer(String hours, String minutes, String seconds, String name) async {
       CustomTimer customTimer = CustomTimer(
           hours: hours,
           minutes: minutes,
-          seconds: seconds
+          seconds: seconds,
+          name: name
       );
       List<CustomTimer> customTimers = [customTimer];
       return await this.handler.insertCustomTimer(customTimers);
@@ -2367,7 +2485,16 @@ class _MyHomePageState extends State<MyHomePage> {
                                                         )
                                                     )
                                                 ),
-                                                controller: TextEditingController()..text = '${newCustomTimerHours}:${newCustomTimerMinutes}:${newCustomTimerSeconds}'
+                                                controller: TextEditingController()..text = '${newCustomTimerHours},:${newCustomTimerMinutes}:${newCustomTimerSeconds}',
+                                                onChanged: (value) {
+                                                  List<String> possibleTime = value.split(':');
+                                                  bool isTime = possibleTime.length == 3;
+                                                  if (isTime) {
+                                                    newCustomTimerHours = possibleTime[0];
+                                                    newCustomTimerMinutes = possibleTime[1];
+                                                    newCustomTimerSeconds = possibleTime[2];
+                                                  }
+                                                }
                                             ),
                                             padding: EdgeInsets.only(
                                                 top: 25,
@@ -2384,14 +2511,24 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ),
                                           Container(
                                             child: TextField(
+                                                keyboardType: TextInputType.numberWithOptions(
+
+                                                ),
                                                 decoration: new InputDecoration.collapsed(
                                                     hintText: 'Название готового таймера',
                                                     border: OutlineInputBorder(
-                                                        borderSide: BorderSide(
-                                                            width: 1.0
-                                                        )
+                                                      gapPadding: 500.0,
+                                                      borderSide: BorderSide(
+                                                          style: BorderStyle.solid,
+                                                          width: 1.0
+                                                      )
                                                     )
-                                                )
+                                                ),
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    newCustomTimerName = value;
+                                                  });
+                                                },
                                             ),
                                             padding: EdgeInsets.only(
                                                 top: 25,
@@ -2411,13 +2548,21 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ),
                                     actions: <Widget>[
                                       TextButton(
-                                        onPressed: () => Navigator.pop(context, 'Cancel'),
+                                        onPressed: () {
+                                          setState(() {
+                                            newCustomTimerName = '';
+                                          });
+                                          return Navigator.pop(context, 'Cancel');
+                                        },
                                         child: const Text('Отмена')
                                       ),
                                       TextButton(
                                         onPressed: () {
                                           // addCustomTimer();
-                                          addNewCustomTimer(newCustomTimerHours, '00', '00');
+                                          addNewCustomTimer(newCustomTimerHours, newCustomTimerMinutes, newCustomTimerSeconds, newCustomTimerName);
+                                          setState(() {
+                                            newCustomTimerName = '';
+                                          });
                                           return Navigator.pop(context, 'OK');
                                         },
                                         child: const Text('Добавить')
@@ -2536,9 +2681,12 @@ class _MyHomePageState extends State<MyHomePage> {
                           onPressed: () {
                             // Navigator.pushNamed(context, '/started_timer');
                             setState(() {
-                              isStartTimer = true;
-                              // здесь
+                              startTimerTitle = '${newCustomTimerHours}:${newCustomTimerMinutes}:${newCustomTimerSeconds}';
+                              startedTimerHours = int.parse(newCustomTimerHours);
+                              startedTimerMinutes = int.parse(newCustomTimerMinutes);
+                              startedTimerSeconds = int.parse(newCustomTimerSeconds);
                             });
+                            runStartedTimer();
                           },
                           style: ButtonStyle(
                               textStyle: MaterialStateProperty.all(
@@ -2648,7 +2796,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     TextButton(
                                         onPressed: () {
                                           // addCustomTimer();
-                                          addNewCustomTimer(newCustomTimerHours, newCustomTimerMinutes, newCustomTimerSeconds);
+                                          addNewCustomTimer(newCustomTimerHours, newCustomTimerMinutes, newCustomTimerSeconds, newCustomTimerName);
                                           return Navigator.pop(context, 'OK');
                                         },
                                         child: const Text('Добавить')
@@ -2696,7 +2844,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           borderRadius: BorderRadius.circular(150),
                         ),
                         child: Text(
-                          '00:00:00',
+                          startTimerTitle,
                           style: TextStyle(
                             fontSize: 36
                           )
@@ -2709,6 +2857,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           onPressed: () {
                             setState((){
                               isStartTimer = false;
+                              startedTimer.cancel();
+                              startedTimerPauseBtnContent = startedTimerPauseLabel;
                             });
                           },
                           child: Text(
@@ -2739,10 +2889,19 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         TextButton(
                             onPressed: () {
-                              Navigator.pushNamed(context, '/main');
+                              setState(() {
+                                bool isStartedTimerRun = startedTimerPauseBtnContent == startedTimerResumeLabel;
+                                if (isStartedTimerRun) {
+                                  startedTimerPauseBtnContent = startedTimerPauseLabel;
+                                  runStartedTimer();
+                                } else {
+                                  startedTimerPauseBtnContent = startedTimerResumeLabel;
+                                  startedTimer.cancel();
+                                }
+                              });
                             },
                             child: Text(
-                                'Пауза',
+                                startedTimerPauseBtnContent,
                                 style: TextStyle(
                                     fontSize: 18
                                 )
@@ -2752,6 +2911,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                     Colors.white
                                 ),
                                 backgroundColor: MaterialStateProperty.all(
+                                  startedTimerPauseBtnContent == startedTimerResumeLabel ?
+                                    Colors.blue
+                                  :
                                     Colors.red
                                 ),
                                 shape: MaterialStateProperty.all(
@@ -3347,7 +3509,7 @@ class DatabaseHandler {
             "CREATE TABLE worldtimes(id INTEGER PRIMARY KEY, name TEXT)"
         );
         await database.execute(
-            "CREATE TABLE timers(id INTEGER PRIMARY KEY, hours TEXT, minutes TEXT, seconds TEXT)"
+            "CREATE TABLE customtimers(id INTEGER PRIMARY KEY, hours TEXT, minutes TEXT, seconds TEXT, name TEXT)"
         );
       },
       onOpen: (database) async {
@@ -3358,8 +3520,10 @@ class DatabaseHandler {
             "CREATE TABLE worldtimes(id INTEGER PRIMARY KEY, name TEXT);"
         );
         await database.execute(
-            "CREATE TABLE timers(id INTEGER PRIMARY KEY, hours TEXT, minutes TEXT, seconds TEXT)"
-        );*/
+            "CREATE TABLE customtimers(id INTEGER PRIMARY KEY, hours TEXT, minutes TEXT, seconds TEXT, name TEXT)"
+        );
+        */
+        // await database.execute('DROP TABLE customtimers;');
       },
       version: 1,
     );
@@ -3399,6 +3563,16 @@ class DatabaseHandler {
     );
   }
 
+  Future<void> updateIsEnabledAlarm(Map<String, Object> alarm) async {
+    final db = await initializeDB();
+    Map<String, Object> values = Map<String, Object>();
+    values = alarm;
+    bool isEnabled = alarm['enalbed'] as bool;
+    alarm['enalbed'] = isEnabled ? false : true;
+    values = alarm;
+    await db.update('alarms', values);
+  }
+
   Future<int> insertWorldTime(List<WorldTime> worldTimes) async {
     int result = 0;
     final Database db = await initializeDB();
@@ -3419,14 +3593,14 @@ class DatabaseHandler {
     int result = 0;
     final Database db = await initializeDB();
     for(var customTimer in customTimers){
-      result = await db.insert('timers', customTimer.toMap());
+      result = await db.insert('customtimers', customTimer.toMap());
     }
     return result;
   }
 
   Future<List<CustomTimer>> retrieveCustomTimers() async {
     final Database db = await initializeDB();
-    final List<Map<String, Object?>> queryResult = await db.query('timers');
+    final List<Map<String, Object?>> queryResult = await db.query('customtimers');
     var returnedCustomTimers = queryResult.map((e) => CustomTimer.fromMap(e)).toList();
     return returnedCustomTimers;
   }
@@ -3461,12 +3635,14 @@ class CustomTimer {
   final String hours;
   final String minutes;
   final String seconds;
+  final String name;
 
   CustomTimer({
     this.id,
     required this.hours,
     required this.minutes,
-    required this.seconds
+    required this.seconds,
+    required this.name
   });
 
   Map<String, dynamic> toMap() {
@@ -3474,7 +3650,8 @@ class CustomTimer {
       'id': id,
       'hours': hours,
       'minutes': minutes,
-      'seconds': seconds
+      'seconds': seconds,
+      'name': name
     };
   }
 
@@ -3482,7 +3659,8 @@ class CustomTimer {
     : id = res["id"],
       hours = res["hours"],
       minutes = res["minutes"],
-      seconds = res["seconds"];
+      seconds = res["seconds"],
+      name = res["name"];
 }
 
 class CityWeatherResponse {
