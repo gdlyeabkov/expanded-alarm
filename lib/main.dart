@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
+import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -69,7 +72,8 @@ class MyApp extends StatelessWidget {
             title: 'Flutter Demo Home Page'
         ),
         '/add_alarm': (context) => AddAlarmPage(),
-        '/add_world_time': (context) => AddWorldTimePage(),
+        '/add_world_time': (context) => AddWorldTimePage(isCreateAction: true),
+        '/edit_world_time': (context) => EditWorldTimePage(isCreateAction: false),
         '/started_timer': (context) => StartedTimerPage()
       },
       initialRoute: '/main',
@@ -344,6 +348,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String startedTimerPauseBtnContent = 'Пауза';
   bool isSelectionMode = false;
   bool isSelectAll = false;
+  late BuildContext mainContext;
+  double startedTimerGradientPosition = 1.0;
 
   @override
   void initState() {
@@ -1690,17 +1696,21 @@ class _MyHomePageState extends State<MyHomePage> {
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
-      throw Exception('Failed to load city world time');
+      // throw Exception('Failed to load city world time');
+      return CityWorldTimeResponse(
+        datetime: '22.11.2000T00:00:00'
+      );
     }
   }
 
   void addWorldTime (WorldTime worldTime) {
-    // setState(() {
-      String worldTimeCityName = worldTime.name;
-      Future<CityWeatherResponse> parsedWeather = fetchCityWeather(worldTimeCityName);
-      Future<CityWorldTimeResponse> parsedWorldTime = fetchCityWorldTime(worldTimeCityName);
-      worldTimes.add(
-        Row(
+    int worldTimeId = worldTime.id!;
+    String worldTimeCityName = worldTime.name;
+    Future<CityWeatherResponse> parsedWeather = fetchCityWeather(worldTimeCityName);
+    Future<CityWorldTimeResponse> parsedWorldTime = fetchCityWorldTime(worldTimeCityName);
+    worldTimes.add(
+      GestureDetector(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             Container(
@@ -1719,83 +1729,104 @@ class _MyHomePageState extends State<MyHomePage> {
                 )
             ),
             Row(
-              children: [
-                Container(
-                  margin: EdgeInsets.only(
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    right: 25
-                  ),
-                  child: FutureBuilder<CityWorldTimeResponse>(
-                    future: parsedWorldTime,
-                    builder: (context, snapshot) {
-                      bool isHasData = snapshot.hasData;
-                      if (isHasData) {
-                        var snapshotData = snapshot.data!;
-                        String cityWorldDatetime = snapshotData.datetime;
-                        List<String> cityWorldDateAndTime = cityWorldDatetime.split('T');
-                        String cityWorldTime = cityWorldDateAndTime[1];
-                        List<String> cityWorldTimeMinutesAndHours = cityWorldTime.split(':');
-                        String cityWorldTimeHours = cityWorldTimeMinutesAndHours[0];
-                        String cityWorldTimeMinutes = cityWorldTimeMinutesAndHours[1];
-                        String rawCityWorldTime = '${cityWorldTimeHours}:${cityWorldTimeMinutes}';
-                        return Text(
-                          rawCityWorldTime,
-                          style: TextStyle(
-                              fontSize: 24
-                          )
-                        );
-                      } else {
-                        return Text(
-                          'Неизвестно',
-                          style: TextStyle(
-                            fontSize: 24
-                          )
-                        );
-                      }
-                    }
-                  ),
-                ),
-                Column(
-                  children: <Widget>[
-                    Image.asset(
-                        'assets/weather.png',
-                        width: 25
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(
+                        top: 0,
+                        bottom: 0,
+                        left: 0,
+                        right: 25
                     ),
-                    FutureBuilder<CityWeatherResponse>(
-                      future: parsedWeather,
-                      builder: (context, snapshot) {
-                        bool isHasData = snapshot.hasData;
-                        var snapshotData = snapshot.data!;
-                        WeatherInfo weatherInfo = snapshotData.main;
-                        double parsedTemp = weatherInfo.temp;
-                        int roundedParsedTemp = parsedTemp.toInt();
-                        String rawTemp = roundedParsedTemp.toString();
-                        String rawTempInDegresses = '${rawTemp}°';
-                        if (isHasData) {
-                          return Row(
-                            children: [
-                              Text(
-                                  rawTempInDegresses
-                              )
-                            ]
-                          );
-                        } else {
-                          return Text(
-                              'Неизвестно'
-                          );
+                    child: FutureBuilder<CityWorldTimeResponse>(
+                        future: parsedWorldTime,
+                        builder: (context, snapshot) {
+                          bool isHasData = snapshot.hasData;
+                          if (isHasData) {
+                            var snapshotData = snapshot.data!;
+                            // bool isDateTime = snapshotData != null;
+                            // if (isDateTime) {
+                              String cityWorldDatetime = snapshotData.datetime;
+                              List<
+                                  String> cityWorldDateAndTime = cityWorldDatetime
+                                  .split('T');
+                              String cityWorldTime = cityWorldDateAndTime[1];
+                              List<
+                                  String> cityWorldTimeMinutesAndHours = cityWorldTime
+                                  .split(':');
+                              String cityWorldTimeHours = cityWorldTimeMinutesAndHours[0];
+                              String cityWorldTimeMinutes = cityWorldTimeMinutesAndHours[1];
+                              String rawCityWorldTime = '${cityWorldTimeHours}:${cityWorldTimeMinutes}';
+                              return Text(
+                                  rawCityWorldTime,
+                                  style: TextStyle(
+                                      fontSize: 24
+                                  )
+                              );
+                            // }
+                            return Column();
+                          } else {
+                            return Text(
+                                'Неизвестно',
+                                style: TextStyle(
+                                    fontSize: 24
+                                )
+                            );
+                          }
                         }
-                      }
-                    )
-                  ],
-                )
-              ]
+                    ),
+                  ),
+                  Column(
+                    children: <Widget>[
+                      Image.asset(
+                          'assets/weather.png',
+                          width: 25
+                      ),
+                      FutureBuilder<CityWeatherResponse>(
+                          future: parsedWeather,
+                          builder: (context, snapshot) {
+                            bool isHasData = snapshot.hasData;
+                            var snapshotData = snapshot.data!;
+                            WeatherInfo weatherInfo = snapshotData.main;
+                            double parsedTemp = weatherInfo.temp;
+                            int roundedParsedTemp = parsedTemp.toInt();
+                            String rawTemp = roundedParsedTemp.toString();
+                            String rawTempInDegresses = '${rawTemp}°';
+                            if (isHasData) {
+                              return Row(
+                                  children: [
+                                    Text(
+                                        rawTempInDegresses
+                                    )
+                                  ]
+                              );
+                            } else {
+                              return Text(
+                                  'Неизвестно'
+                              );
+                            }
+                          }
+                      )
+                    ],
+                  )
+                ]
             )
           ]
-        )
-      );
-    // });
+        ),
+        onTap: () {
+          /*Object arguments = Object(
+              a: 'b'
+          );
+          arguments.add*/
+          Navigator.pushNamed(
+              mainContext,
+              '/edit_world_time',
+              arguments: {
+                'worldTimeId': worldTimeId
+              }
+          );
+        }
+      )
+    );
   }
 
   void addCustomTimer(CustomTimer customTimer) {
@@ -2039,12 +2070,36 @@ class _MyHomePageState extends State<MyHomePage> {
         startTimerTitle = currentTime;
 
         // bool isTimeOver = startedTimerSeconds == 0 && startedTimerMinutes == 0 && startedTimerSeconds == 0;
-        bool isTimeOver = startedTimerSeconds == -1;
+        bool isTimeOver = startedTimerSeconds == -1 && startedTimerMinutes <= 0;
         if (isTimeOver) {
           startedTimer.cancel();
           isStartTimer = false;
         }
 
+        int initialHours = int.parse(newCustomTimerHours);
+        int initialMinutes = int.parse(newCustomTimerMinutes);
+        int initialSeconds = int.parse(newCustomTimerSeconds);
+        Duration initialDuration = Duration(
+          hours: initialHours,
+          minutes: initialMinutes,
+          seconds: initialSeconds
+        );
+        int initialDurationMillis = initialDuration.inMilliseconds;
+        int currentHours = int.parse(updatedHoursText);
+        int currentMinutes = int.parse(updatedMinutesText);
+        int currentSeconds = int.parse(updatedSecondsText);
+        Duration currentDuration = Duration(
+          hours: currentHours,
+          minutes: currentMinutes,
+          seconds: currentSeconds
+        );
+        int currentDurationMillis = currentDuration.inMilliseconds;
+        double diffDurationMillis = initialDurationMillis / currentDurationMillis;
+        double correctOfDiffDutaion = 1 + (1 - diffDurationMillis);
+        bool isDurationProgressed = correctOfDiffDutaion > 0;
+        if (isDurationProgressed) {
+          startedTimerGradientPosition = correctOfDiffDutaion;
+        }
       });
 
     });
@@ -2056,6 +2111,10 @@ class _MyHomePageState extends State<MyHomePage> {
     /*havedWorldTimes.toList().map((Object havedWorldTime) {
       addWorldTime();
     });*/
+
+    setState(() {
+      mainContext = context;
+    });
 
     Future<int> addNewCustomTimer(String hours, String minutes, String seconds, String name) async {
       CustomTimer customTimer = CustomTimer(
@@ -2565,7 +2624,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                         )
                                                     )
                                                 ),
-                                                controller: TextEditingController()..text = '${newCustomTimerHours},:${newCustomTimerMinutes}:${newCustomTimerSeconds}',
+                                                controller: TextEditingController()..text = '${newCustomTimerHours}:${newCustomTimerMinutes}:${newCustomTimerSeconds}',
                                                 onChanged: (value) {
                                                   List<String> possibleTime = value.split(':');
                                                   bool isTime = possibleTime.length == 3;
@@ -2922,11 +2981,44 @@ class _MyHomePageState extends State<MyHomePage> {
                         decoration: BoxDecoration(
                           color: Color.fromARGB(255, 200, 200, 200),
                           borderRadius: BorderRadius.circular(150),
+                          shape: BoxShape.rectangle,
+                          /*border: Border.all(
+                            width: 1.0,
+                            style: BorderStyle.solid,
+                            color: Colors.red
+                          )*/
+                          /*gradient: LinearGradient(
+                            colors: [
+                              Colors.red,
+                              Colors.blue
+                            ]
+                          )*/
+                          gradient: LinearGradient(
+                            stops: [
+                              startedTimerGradientPosition,
+                              1.0
+                            ],
+                            colors: [
+                              Colors.transparent,
+                              Colors.red,
+                            ]
+                        )
                         ),
-                        child: Text(
-                          startTimerTitle,
-                          style: TextStyle(
-                            fontSize: 36
+                        child: Container(
+                          alignment: Alignment.center,
+                          height: 300.0,
+                          width: 300.0,
+                          margin: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Color.fromARGB(255, 200, 200, 200),
+                            borderRadius: BorderRadius.circular(150),
+                            shape: BoxShape.rectangle,
+                          ),
+                          child: Text(
+                            startTimerTitle,
+                            style: TextStyle(
+                                fontSize: 36
+                            )
                           )
                         )
                     ),
@@ -4106,10 +4198,12 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
 
 class AddWorldTimePage extends StatefulWidget {
 
-  const AddWorldTimePage({Key? key}) : super(key: key);
+  bool isCreateAction = true;
+
+  AddWorldTimePage({Key? key, required bool isCreateAction}) : super(key: key);
 
   @override
-  State<AddWorldTimePage> createState() => _AddWorldTimePageState();
+  State<AddWorldTimePage> createState() => _AddWorldTimePageState(isCreateAction);
 
 }
 
@@ -4117,6 +4211,11 @@ class _AddWorldTimePageState extends State<AddWorldTimePage> {
 
   late DatabaseHandler handler;
   String newCityName = '';
+  late bool isCreateAction;
+
+  _AddWorldTimePageState(bool isCreateAction) {
+    this.isCreateAction = isCreateAction;
+  }
 
   @override
   void initState() {
@@ -4139,7 +4238,10 @@ class _AddWorldTimePageState extends State<AddWorldTimePage> {
         Scaffold(
             appBar: AppBar(
                 title: Text(
+                  this.isCreateAction ?
                     'Добавить мировое время'
+                  :
+                    'Изменить город'
                 )
             ),
             body: Column(
@@ -4159,7 +4261,10 @@ class _AddWorldTimePageState extends State<AddWorldTimePage> {
                               )
                           ),
                           child: Text(
-                              'Добавить мировое время',
+                              this.isCreateAction ?
+                                'Добавить мировое время'
+                              :
+                                'Изменить город',
                               style: TextStyle(
                                   color: Colors.white
                               )
@@ -4170,6 +4275,99 @@ class _AddWorldTimePageState extends State<AddWorldTimePage> {
                           }
                       )
                     ]
+                  )
+                ]
+            )
+        )
+    );
+  }
+
+}
+
+class EditWorldTimePage extends StatefulWidget {
+
+  bool isCreateAction = true;
+
+  EditWorldTimePage({Key? key, required bool isCreateAction}) : super(key: key);
+
+  @override
+  State<EditWorldTimePage> createState() => _EditWorldTimePageState(isCreateAction);
+
+}
+
+class _EditWorldTimePageState extends State<EditWorldTimePage> {
+
+  late DatabaseHandler handler;
+  String newCityName = '';
+  late bool isCreateAction;
+  int worldTimeId = 0;
+
+  _EditWorldTimePageState(bool isCreateAction) {
+    this.isCreateAction = isCreateAction;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    this.handler = DatabaseHandler();
+    this.handler.initializeDB().whenComplete(() async {
+      setState(() {
+
+      });
+    });
+
+  }
+
+  void updateWorldTime(int worldTimeId) async {
+    return await this.handler.updateWorldTime(worldTimeId, newCityName);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    setState(() {
+      final arguments = ModalRoute.of(context)!.settings.arguments as Map;
+      if (arguments != null) {
+        print(arguments['worldTimeId']);
+        worldTimeId = arguments['worldTimeId'];
+      }
+    });
+
+    return (
+        Scaffold(
+            appBar: AppBar(
+                title: Text(
+                    'Изменить город'
+                )
+            ),
+            body: Column(
+                children: <Widget>[
+                  TextField(
+                    onChanged: (value) {
+                      newCityName = value;
+                    },
+                  ),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                            style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all(
+                                    Colors.blue
+                                )
+                            ),
+                            child: Text(
+                              'Изменить город',
+                              style: TextStyle(
+                                  color: Colors.white
+                              )
+                            ),
+                            onPressed: () {
+                              updateWorldTime(this.worldTimeId);
+                              Navigator.pushNamed(context, '/main');
+                            }
+                        )
+                      ]
                   )
                 ]
             )
@@ -4370,6 +4568,20 @@ class DatabaseHandler {
     final List<Map<String, Object?>> queryResult = await db.query('customtimers');
     var returnedCustomTimers = queryResult.map((e) => CustomTimer.fromMap(e)).toList();
     return returnedCustomTimers;
+  }
+
+  Future<void> updateWorldTime(int worldTimeId, String cityName) async {
+    final db = await initializeDB();
+    Map<String, dynamic> values = Map<String, dynamic>();
+    values = {
+      'name': cityName
+    };
+    await db.update(
+        'worldtimes',
+        values,
+        where: 'id = ?',
+        whereArgs: [worldTimeId]
+    );
   }
 
 }
