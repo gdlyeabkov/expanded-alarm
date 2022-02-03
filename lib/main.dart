@@ -5,7 +5,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-// import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -18,6 +19,8 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
+
+import 'package:flutter/services.dart';
 
 /*void runAppSpector() {
   final config = Config()
@@ -33,6 +36,20 @@ import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 void main() async {
   // runAppSpector();
   runApp(const MyApp());
+  await AndroidAlarmManager.initialize();
+  final int helloAlarmID = 0;
+  await AndroidAlarmManager.periodic(const Duration(seconds: 10), helloAlarmID, wakeUp);
+}
+
+void wakeUp() {
+  print('бужу. пора вставать');
+  FlutterRingtonePlayer.play(
+    android: AndroidSounds.alarm,
+    ios: IosSounds.alarm,
+    looping: false, // Android only - API >= 28
+    volume: 1, // Android only - API >= 28
+    asAlarm: true, // Android only - all APIs
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -73,11 +90,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   late DatabaseHandler handler;
   var alarmTogglers = [
-    false,
-    false,
-    false,
-    false,
-    false
+
+  ];
+  var alarmsSelectors = [
+
+  ];
+  var alarmsIds = [
+
   ];
   bool isStartStopWatch = false;
   late Timer stopWatchTimer;
@@ -323,6 +342,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String startedTimerPauseLabel = 'Пауза';
   String startedTimerResumeLabel = 'Продолж.';
   String startedTimerPauseBtnContent = 'Пауза';
+  bool isSelectionMode = false;
+  bool isSelectAll = false;
 
   @override
   void initState() {
@@ -1553,6 +1574,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void addAlarm (Alarm alarm) {
+    int alarmId = alarm.id!;
     String alarmTime = alarm.time;
     String alarmDate = alarm.date;
     String rawAlarmYear = alarm.date.split('/')[2];
@@ -1578,14 +1600,26 @@ class _MyHomePageState extends State<MyHomePage> {
     bool isAlarmEnabled = rawAlarmIsEnabled == 1;
     alarmTogglers.add(isAlarmEnabled);
     int alarmIndex = alarms.length;
-    // setState(() {
-      // alarmTogglers[alarmIndex] = isAlarmEnabled;
-    // });
-    //setState(() {
-      alarms.add(
-          Row(
+    alarmTogglers[alarmIndex] = isAlarmEnabled;
+    alarmsSelectors.add(false);
+    alarmsIds.add(alarmId);
+    alarms.add(
+      alarmsIds[alarmIndex] != 0 ?
+        GestureDetector(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
+              isSelectionMode ?
+                Checkbox(
+                    value: alarmsSelectors[alarmIndex],
+                    onChanged: (value) {
+                      setState(() {
+                        alarmsSelectors[alarmIndex] = value;
+                      });
+                    }
+                )
+              :
+                Column(),
               Container(
                   child: Text(
                       alarmTime,
@@ -1612,17 +1646,24 @@ class _MyHomePageState extends State<MyHomePage> {
                       onChanged: (bool value) => {
                         setState(() {
                           alarmTogglers[alarmIndex] = value;
-                          Map<String, Object> parsedAlarm = alarm.toMap() as Map<String, Object>;
-                          handler.updateIsEnabledAlarm(parsedAlarm);
+                          Map<String, dynamic> parsedAlarm = alarm.toMap() as Map<String, dynamic>;
+                          handler.updateIsEnabledAlarm(alarm, value);
                         })
                       }
                   )
                 ]
               )
-            ],
-          )
-      );
-    // });
+            ]
+          ),
+          onLongPress: () {
+            setState(() {
+              isSelectionMode = true;
+            });
+          }
+        )
+      :
+        Column()
+    );
   }
 
   Future<CityWeatherResponse> fetchCityWeather(String cityName) async {
@@ -2027,7 +2068,18 @@ class _MyHomePageState extends State<MyHomePage> {
       return await this.handler.insertCustomTimer(customTimers);
     }
 
-    return DefaultTabController(
+    return WillPopScope(
+      onWillPop: () async {
+        if (isSelectionMode) {
+          setState(() {
+            isSelectionMode = false;
+            alarmsSelectors.fillRange(0, alarmsSelectors.length - 1, false);
+          });
+          return false;
+        }
+        return true;
+      },
+      child: DefaultTabController(
         initialIndex: 0,
         length: 5,
         child: Scaffold(
@@ -2121,13 +2173,39 @@ class _MyHomePageState extends State<MyHomePage> {
                             }
                           }
                           if (snapshot.hasData) {
-                            return Container(
-                                height: 250,
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                      children: alarms
+                            return Column(
+                              children: [
+                                isSelectionMode ?
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        value: isSelectAll,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            isSelectAll = !isSelectAll;
+                                            if (isSelectAll) {
+                                              alarmsSelectors.fillRange(0, alarmsSelectors.length -1, true);
+                                            }
+                                         });
+                                        }
+                                      ),
+                                      Text(
+                                        'Выбрать все'
+                                      )
+                                    ]
                                   )
+                                :
+                                  Column()
+                                ,
+                                Container(
+                                    height: 250,
+                                    child: SingleChildScrollView(
+                                        child: Column(
+                                            children: alarms
+                                        )
+                                    )
                                 )
+                              ]
                             );
                           } else {
                             return Column(
@@ -2948,8 +3026,63 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               )
             ],
-          )
+          ),
+          bottomNavigationBar: isSelectionMode ?
+            BottomNavigationBar(
+              onTap: (itemIndex) async {
+                bool isToggleAction = itemIndex == 0;
+                bool isRemoveAction = itemIndex == 1;
+                if (isToggleAction) {
+                  print('переключаю будильники');
+                  int alarmIndex = -1;
+                  for (Widget alarm in alarms) {
+                    alarmIndex++;
+                    bool alarmSelector = alarmsSelectors[alarmIndex];
+                    if (alarmSelector) {
+                      print('я выбран и могу быть переключен');
+                      bool isEnabled = alarmTogglers[alarmIndex];
+                      setState(() {
+                        alarmTogglers[alarmIndex] = !alarmTogglers[alarmIndex];
+                      });
+                    }
+                  }
+                } else if (isRemoveAction) {
+                  print('удаляю будильники');
+                  int alarmIndex = -1;
+                  for (Widget alarm in alarms) {
+                    alarmIndex++;
+                    bool alarmSelector = alarmsSelectors[alarmIndex];
+                    if (alarmSelector) {
+                      print('я выбран и могу быть удален');
+                      await handler.deleteAlarm(alarmsIds[alarmIndex]);
+                      setState(() {
+                        alarmsIds[alarmIndex] = 0;
+                      });
+                    }
+                  }
+                }
+              },
+              items: [
+                BottomNavigationBarItem(
+                  icon: Icon(
+                    Icons.alarm
+                  ),
+                    title: Text(
+                        'Переключить'
+                    )
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(
+                      Icons.remove
+                  ),
+                  title: Text('Удалить')
+                )
+              ]
+            )
+          :
+            null,
         )
+      )
     );
   }
 }
@@ -3804,43 +3937,56 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                         alarmSignalName = signalName;
                       },
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              FlutterRingtonePlayer.play(
-                                android: AndroidSounds.alarm,
-                                ios: IosSounds.glass,
-                                looping: true, // Android only - API >= 28
-                                volume: 1, // Android only - API >= 28
-                                asAlarm: false, // Android only - all APIs
-                              );
-                            },
-                            child: Text(
+                  GestureDetector(
+                    onTap: () async {
+                      /*FlutterRingtonePlayer.play(
+                        android: AndroidSounds.ringtone,
+                        ios: IosSounds.alarm,
+                        looping: false, // Android only - API >= 28
+                        volume: 1, // Android only - API >= 28
+                        asAlarm: true, // Android only - all APIs
+                      );*/
+                      print('запускаю будильник');
+                      final int helloAlarmID = 0;
+
+                      // await AndroidAlarmManager.periodic(const Duration(minutes: 1), helloAlarmID, wakeUp);
+                      AndroidAlarmManager.oneShotAt(
+                          DateTime.now().add(
+                              Duration(
+                                  minutes: 1
+                              )
+                          ),
+                          helloAlarmID,
+                          wakeUp
+                      );
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          children: [
+                           Text(
                               'Звук будильника',
                               style: TextStyle(
                                   fontSize: 18
+                              ),
+                            ),
+                            Text(
+                              'Homecoming',
+                              style: TextStyle(
+                                  color: Colors.blue
                               )
                             )
-                          ),
-                          Text(
-                            'Homecoming',
-                            style: TextStyle(
-                                color: Colors.blue
-                            )
-                          )
-                        ]
-                      ),
-                      Switch(
-                        value: true,
-                        onChanged: (bool value) {
+                          ]
+                        ),
+                        Switch(
+                          value: true,
+                          onChanged: (bool value) {
 
-                        }
-                      )
-                    ]
+                          }
+                        )
+                      ]
+                    )
                   ),
                   Divider(
                     thickness: 1.0
@@ -3848,21 +3994,26 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                            children: [
-                              Text(
-                                  'Вибрация',
-                                  style: TextStyle(
-                                      fontSize: 18
-                                  )
-                              ),
-                              Text(
-                                  'Basic call',
-                                  style: TextStyle(
-                                      color: Colors.blue
-                                  )
-                              )
-                            ]
+                        GestureDetector(
+                          child: Column(
+                              children: [
+                                Text(
+                                    'Вибрация',
+                                    style: TextStyle(
+                                        fontSize: 18
+                                    )
+                                ),
+                                Text(
+                                    'Basic call',
+                                    style: TextStyle(
+                                        color: Colors.blue
+                                    )
+                                )
+                              ]
+                          ),
+                          onTap: () {
+                            HapticFeedback.vibrate();
+                          }
                         ),
                         Switch(
                             value: true,
@@ -3910,6 +4061,7 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
               children: [
                 TextButton(
                   onPressed: () {
+                    FlutterRingtonePlayer.stop();
                     Navigator.pushNamed(context, '/main');
                   },
                   child: Text(
@@ -3926,6 +4078,7 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                 ),
                 TextButton(
                     onPressed: () async {
+                      FlutterRingtonePlayer.stop();
                       await this.addNewAlarm(newAlarmTime, newAlarmDate, 1, alarmSignalName);
                       Navigator.pushNamed(context, '/main');
                     },
@@ -4171,14 +4324,20 @@ class DatabaseHandler {
     );
   }
 
-  Future<void> updateIsEnabledAlarm(Map<String, Object> alarm) async {
+  Future<void> updateIsEnabledAlarm(Alarm alarm, bool isEnabled) async {
     final db = await initializeDB();
-    Map<String, Object> values = Map<String, Object>();
-    values = alarm;
-    bool isEnabled = alarm['enalbed'] as bool;
-    alarm['enalbed'] = isEnabled ? false : true;
-    values = alarm;
-    await db.update('alarms', values);
+    Map<String, dynamic> values = Map<String, dynamic>();
+    int alarmIsEnabled = isEnabled ? 1 : 0;
+    values = {
+      'enabled': alarmIsEnabled
+    };
+    int alarmId = alarm.id!;
+    await db.update(
+      'alarms',
+      values,
+      where: 'id = ?',
+      whereArgs: [alarmId]
+    );
   }
 
   Future<int> insertWorldTime(List<WorldTime> worldTimes) async {
