@@ -25,6 +25,10 @@ import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 
 import 'package:flutter/services.dart';
 
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
+// import 'package:timezone/browser.dart' as tz;
+
 /*void runAppSpector() {
   final config = Config()
     ..iosApiKey = "Your iOS API_KEY"
@@ -350,6 +354,10 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isSelectAll = false;
   late BuildContext mainContext;
   double startedTimerGradientPosition = 1.0;
+  int currentTab = 0;
+  List<bool> worldTimeSelectors = [];
+  List<int> worldTimesIds = [];
+  List<int> worldTimeHoursDiff = [];
 
   @override
   void initState() {
@@ -1651,6 +1659,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       value: alarmTogglers[alarmIndex],
                       onChanged: (bool value) => {
                         setState(() {
+                          print('alarmIndex: ${alarmIndex}');
                           alarmTogglers[alarmIndex] = value;
                           Map<String, dynamic> parsedAlarm = alarm.toMap() as Map<String, dynamic>;
                           handler.updateIsEnabledAlarm(alarm, value);
@@ -1664,6 +1673,7 @@ class _MyHomePageState extends State<MyHomePage> {
           onLongPress: () {
             setState(() {
               isSelectionMode = true;
+              alarmsSelectors[alarmIndex] = true;
             });
           }
         )
@@ -1704,15 +1714,37 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void addWorldTime (WorldTime worldTime) {
+    int worldTimeIndex = worldTimes.length;
     int worldTimeId = worldTime.id!;
     String worldTimeCityName = worldTime.name;
     Future<CityWeatherResponse> parsedWeather = fetchCityWeather(worldTimeCityName);
     Future<CityWorldTimeResponse> parsedWorldTime = fetchCityWorldTime(worldTimeCityName);
+    worldTimeSelectors.add(false);
+    worldTimeHoursDiff.add(0);
+    worldTimesIds.add(worldTimeId);
     worldTimes.add(
       GestureDetector(
+        onLongPress: () {
+          setState(() {
+            isSelectionMode = true;
+            worldTimeSelectors[worldTimeIndex] = true;
+          });
+        },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
+            isSelectionMode ?
+              Checkbox(
+                value: worldTimeSelectors[worldTimeIndex],
+                onChanged: (value) {
+                  setState(() {
+                    worldTimeSelectors[worldTimeIndex] = value!;
+                  });
+                }
+              )
+            :
+              Column()
+            ,
             Container(
                 child: Column(
                   children: <Widget>[
@@ -1723,7 +1755,12 @@ class _MyHomePageState extends State<MyHomePage> {
                         )
                     ),
                     Text(
-                        'на 1 час раньше'
+                      worldTimeHoursDiff[worldTimeIndex] == 0 ?
+                        'Местное время'
+                      : worldTimeHoursDiff[worldTimeIndex] > 0 ?
+                        'на ${worldTimeHoursDiff[worldTimeIndex]} час раньше'
+                      :
+                      'на ${worldTimeHoursDiff[worldTimeIndex]} час позже'
                     )
                   ],
                 )
@@ -1756,6 +1793,40 @@ class _MyHomePageState extends State<MyHomePage> {
                               String cityWorldTimeHours = cityWorldTimeMinutesAndHours[0];
                               String cityWorldTimeMinutes = cityWorldTimeMinutesAndHours[1];
                               String rawCityWorldTime = '${cityWorldTimeHours}:${cityWorldTimeMinutes}';
+                              int rawCityWorldTimeHours = int.parse(cityWorldTimeHours);
+                              int rawCityWorldTimeMinutes = int.parse(cityWorldTimeMinutes);
+                              // здесь
+                              Future<CityWorldTimeResponse> currentTimeZone = fetchCityWorldTime('Moscow');
+                              DateTime currentDateTime = DateTime.now();
+                              currentTimeZone.then((value) {
+                                String rawResponse = value.datetime.toString();
+                                List<String> rawDetectedDateAndTime = rawResponse.split('T');
+                                String rawDetectedTime = rawDetectedDateAndTime[1];
+                                List<String> parsedDetectedTime = rawDetectedTime.split(':');
+                                String rawDetectedTimeHours = parsedDetectedTime[0];
+                                String rawDetectedTimeMinutes = parsedDetectedTime[1];
+                                int detectedTimeHours = int.parse(rawDetectedTimeHours);
+                                int detectedTimeMinutes = int.parse(rawDetectedTimeMinutes);
+                                DateTime detectedDateTime = new DateTime(
+                                  currentDateTime.year,
+                                  0,
+                                  0,
+                                  detectedTimeHours,
+                                  detectedTimeMinutes,
+                                  0,
+                                  0,
+                                  0
+                                );
+                                currentDateTime = detectedDateTime;
+                                Duration b = Duration(
+                                    hours: rawCityWorldTimeHours,
+                                    minutes: rawCityWorldTimeMinutes
+                                );
+                                DateTime dateDiff = currentDateTime.subtract(b);
+                                int hoursDiff = dateDiff.hour;
+                                print('разница в часах: ${hoursDiff} ${currentDateTime.hour}:${currentDateTime.minute}');
+                                worldTimeHoursDiff[worldTimeIndex] = hoursDiff;
+                              });
                               return Text(
                                   rawCityWorldTime,
                                   style: TextStyle(
@@ -1782,10 +1853,11 @@ class _MyHomePageState extends State<MyHomePage> {
                           width: 25
                       ),
                       FutureBuilder<CityWeatherResponse>(
-                          future: parsedWeather,
-                          builder: (context, snapshot) {
-                            bool isHasData = snapshot.hasData;
-                            var snapshotData = snapshot.data!;
+                        future: parsedWeather,
+                        builder: (context, snapshot) {
+                          bool isHasData = snapshot.hasData;
+                          if (snapshot.data != null) {
+                          var snapshotData = snapshot.data!;
                             WeatherInfo weatherInfo = snapshotData.main;
                             double parsedTemp = weatherInfo.temp;
                             int roundedParsedTemp = parsedTemp.toInt();
@@ -1805,6 +1877,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               );
                             }
                           }
+                          return Text(
+                              'Неизвестно'
+                          );
+                        }
                       )
                     ],
                   )
@@ -2144,7 +2220,13 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Scaffold(
           appBar: AppBar(
             title: const Text('Будильник'),
-            bottom: const TabBar(
+            bottom: TabBar(
+              onTap: (index) {
+                print('currentTabIndex: ${index}');
+                setState(() {
+                  currentTab = index;
+                });
+              },
               tabs: <Widget>[
                 Tab(
                   text: 'Будильник'
@@ -2165,6 +2247,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           body: TabBarView(
+
             children: <Widget>[
               Column(
                 children: <Widget>[
@@ -3117,51 +3200,81 @@ class _MyHomePageState extends State<MyHomePage> {
                   )
                 ],
               )
-            ],
+            ]
           ),
           bottomNavigationBar: isSelectionMode ?
             BottomNavigationBar(
               onTap: (itemIndex) async {
+                bool isAlarmsTab = currentTab == 0;
+                bool isWorldTimeTab = currentTab == 1;
                 bool isToggleAction = itemIndex == 0;
                 bool isRemoveAction = itemIndex == 1;
                 if (isToggleAction) {
-                  print('переключаю будильники');
-                  int alarmIndex = -1;
-                  for (Widget alarm in alarms) {
-                    alarmIndex++;
-                    bool alarmSelector = alarmsSelectors[alarmIndex];
-                    if (alarmSelector) {
-                      print('я выбран и могу быть переключен');
-                      bool isEnabled = alarmTogglers[alarmIndex];
-                      setState(() {
-                        alarmTogglers[alarmIndex] = !alarmTogglers[alarmIndex];
-                      });
+                  if (isAlarmsTab) {
+                    print('переключаю будильники');
+                    int alarmIndex = -1;
+                    for (Widget alarm in alarms) {
+                      alarmIndex++;
+                      bool alarmSelector = alarmsSelectors[alarmIndex];
+                      if (alarmSelector) {
+                        bool isEnabled = alarmTogglers[alarmIndex];
+                        print('я выбран и могу быть переключен ${isEnabled}, ${alarmTogglers[alarmIndex]}, ${alarmIndex}');
+                        setState(() {
+                          alarmTogglers[0] = !alarmTogglers[0];
+                        });
+                      }
                     }
                   }
                 } else if (isRemoveAction) {
-                  print('удаляю будильники');
-                  int alarmIndex = -1;
-                  for (Widget alarm in alarms) {
-                    alarmIndex++;
-                    bool alarmSelector = alarmsSelectors[alarmIndex];
-                    if (alarmSelector) {
-                      print('я выбран и могу быть удален');
-                      await handler.deleteAlarm(alarmsIds[alarmIndex]);
-                      setState(() {
-                        alarmsIds[alarmIndex] = 0;
-                      });
+                  if (isAlarmsTab) {
+                    print('удаляю будильники');
+                    int alarmIndex = -1;
+                    for (Widget alarm in alarms) {
+                      alarmIndex++;
+                      bool alarmSelector = alarmsSelectors[alarmIndex];
+                      if (alarmSelector) {
+                        print('я выбран и могу быть удален');
+                        await handler.deleteAlarm(alarmsIds[alarmIndex]);
+                        setState(() {
+                          alarmsIds[alarmIndex] = 0;
+                        });
+                      }
                     }
+                  } else if (isWorldTimeTab) {
+                    print('удаляю мировое время');
+                    int worldTimeIndex = -1;
+                    for (Widget worldTime in worldTimes) {
+                      worldTimeIndex++;
+                      bool worldTimeSelector = worldTimeSelectors[worldTimeIndex];
+                      if (worldTimeSelector) {
+                        print('я выбран и могу быть удален');
+                        await handler.deleteWorldTime(worldTimesIds[worldTimeIndex]);
+                        setState(() {
+                          worldTimesIds[worldTimeIndex] = 0;
+                        });
+                      }
+                    }
+                    setState(() {
+                      isSelectionMode = false;
+                      worldTimeSelectors.fillRange(0, worldTimeSelectors.length - 1, false);
+                    });
                   }
                 }
               },
               items: [
                 BottomNavigationBarItem(
                   icon: Icon(
-                    Icons.alarm
+                    currentTab == 0 ?
+                      Icons.alarm
+                    :
+                      null
                   ),
-                    title: Text(
-                        'Переключить'
-                    )
+                  title: Text(
+                    currentTab == 0 ?
+                      'Переключить'
+                    :
+                      ''
+                  )
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(
@@ -4581,6 +4694,15 @@ class DatabaseHandler {
         values,
         where: 'id = ?',
         whereArgs: [worldTimeId]
+    );
+  }
+
+  Future<void> deleteWorldTime(int id) async {
+    final db = await initializeDB();
+    await db.delete(
+      'worldtimes',
+      where: "id = ?",
+      whereArgs: [id],
     );
   }
 
