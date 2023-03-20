@@ -3262,26 +3262,29 @@ class _MyHomePageState extends State<MyHomePage> {
                 }
               },
               items: [
+                /*
+                Должны быть на параметр title не обнаружен
                 BottomNavigationBarItem(
-                  icon: Icon(
-                    currentTab == 0 ?
-                      Icons.alarm
-                    :
-                      null
-                  ),
-                  title: Text(
-                    currentTab == 0 ?
-                      'Переключить'
-                    :
-                      ''
-                  )
+                    icon: Icon(
+                        currentTab == 0 ?
+                        Icons.alarm
+                            :
+                        null
+                    ),
+                    title: Text(
+                        currentTab == 0 ?
+                        'Переключить'
+                            :
+                        ''
+                    )
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(
-                      Icons.remove
-                  ),
-                  title: Text('Удалить')
+                    icon: Icon(
+                        Icons.remove
+                    ),
+                    title: Text('Удалить')
                 )
+                */
               ]
             )
           :
